@@ -21,7 +21,7 @@
       "depth": 0,
       "source": "git",
       "dependencies": {},
-      "hash": "a9430c97030db95bca889813f1ec3c6a7be80459"
+      "hash": "e6113210f97c41187abd494bc8c15abf5b6c0ccd"
     },
     "com.david.utils": {
       "version": "https://github.com/david0305mc/CommonModule.git?path=/Packages/com.david.utils",
