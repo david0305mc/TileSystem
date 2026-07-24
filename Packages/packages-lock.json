@@ -7,6 +7,29 @@
       "dependencies": {},
       "hash": "ceac8d6946b1125fe782cd171fbcb245b567dbf9"
     },
+    "com.david.datamanager": {
+      "version": "https://github.com/david0305mc/CommonModule.git?path=/Packages/com.david.datamanager",
+      "depth": 0,
+      "source": "git",
+      "dependencies": {
+        "com.cysharp.unitask": "2.5.0"
+      },
+      "hash": "a9430c97030db95bca889813f1ec3c6a7be80459"
+    },
+    "com.david.popupmanager": {
+      "version": "https://github.com/david0305mc/CommonModule.git?path=/Packages/com.david.popupmanager",
+      "depth": 0,
+      "source": "git",
+      "dependencies": {},
+      "hash": "a9430c97030db95bca889813f1ec3c6a7be80459"
+    },
+    "com.david.utils": {
+      "version": "https://github.com/david0305mc/CommonModule.git?path=/Packages/com.david.utils",
+      "depth": 0,
+      "source": "git",
+      "dependencies": {},
+      "hash": "a9430c97030db95bca889813f1ec3c6a7be80459"
+    },
     "com.github-glitchenzo.nugetforunity": {
       "version": "https://github.com/GlitchEnzo/NuGetForUnity.git?path=/src/NuGetForUnity",
       "depth": 0,

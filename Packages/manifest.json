@@ -1,6 +1,9 @@
 {
   "dependencies": {
     "com.cysharp.unitask": "https://github.com/Cysharp/UniTask.git?path=src/UniTask/Assets/Plugins/UniTask",
+    "com.david.datamanager": "https://github.com/david0305mc/CommonModule.git?path=/Packages/com.david.datamanager",
+    "com.david.popupmanager": "https://github.com/david0305mc/CommonModule.git?path=/Packages/com.david.popupmanager",
+    "com.david.utils": "https://github.com/david0305mc/CommonModule.git?path=/Packages/com.david.utils",
     "com.github-glitchenzo.nugetforunity": "https://github.com/GlitchEnzo/NuGetForUnity.git?path=/src/NuGetForUnity",
     "com.unity.ai.navigation": "2.0.9",
     "com.unity.collab-proxy": "2.11.2",
