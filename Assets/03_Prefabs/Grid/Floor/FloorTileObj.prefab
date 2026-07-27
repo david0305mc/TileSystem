@@ -104,3 +104,4 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: e3d29565033b46640bc96970fdc9d645, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::FloorTileObj
+  _spriteRenderer: {fileID: 6140168273656403052}

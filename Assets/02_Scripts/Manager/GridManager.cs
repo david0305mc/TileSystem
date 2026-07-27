@@ -62,7 +62,7 @@ public class GridManager : MonoBehaviour
     {
         var worldPos = GridUtil.GridToWorld(gridPos, _tileWidth, _tileHeight);
         var tileObj = Instantiate(_floorPrefab, worldPos, quaternion.identity, _floorRoot);
-        tileObj.Initialize(gridPos, FloorType.Default);
+        tileObj.Initialize(gridPos, _defaultFloorSprite);
         _floorTileObjs[gridPos.x, gridPos.y] = tileObj;
     }
     public bool IsValidPosition(Vector2Int position)
