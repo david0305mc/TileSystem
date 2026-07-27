@@ -16,6 +16,8 @@ public class GameManager : SingletonMono<GameManager>
 
         try
         {
+            UserDataManager.Instance.Init();
+            await UserDataManager.Instance.LoadLocalDataAsync();
             await SceneTransition.Instance.LoadSceneWithFadeAsync(GameDefine.MainSceneName);
         }
         finally
