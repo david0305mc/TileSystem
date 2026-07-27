@@ -246,11 +246,6 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 50, y: -30, z: 0}
---- !u!4 &522684314 stripped
-Transform:
-  m_CorrespondingSourceObject: {fileID: 722590579695107432, guid: 7ed0d9d19841a3e41abb501dcfb03c25, type: 3}
-  m_PrefabInstance: {fileID: 8695075755162333309}
-  m_PrefabAsset: {fileID: 0}
 --- !u!1 &883351518
 GameObject:
   m_ObjectHideFlags: 0
@@ -390,7 +385,7 @@ Camera:
   far clip plane: 1000
   field of view: 60
   orthographic: 1
-  orthographic size: 10
+  orthographic size: 5
   m_Depth: -1
   m_CullingMask:
     serializedVersion: 2
@@ -436,9 +431,14 @@ MonoBehaviour:
   dragSpeed: 1
   minPosition: {x: -10, y: -10}
   maxPosition: {x: 10, y: 10}
+  inertiaMultiplier: 1
+  inertiaDeceleration: 6
+  inertiaStopThreshold: 0.05
+  maxInertiaSpeed: 20
   minOrthographicSize: 3
   maxOrthographicSize: 8
-  zoomSpeed: 0.01
+  mouseZoomSpeed: 0.5
+  pinchZoomSpeed: 0.01
 --- !u!1 &1046554341
 GameObject:
   m_ObjectHideFlags: 0
@@ -513,10 +513,16 @@ MonoBehaviour:
   m_GameObject: {fileID: 1349782988}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 5a4577f1c10bcea4d97410ceca038dcd, type: 3}
+  m_Script: {fileID: 11500000, guid: c3f2959b03e74dc4a906ca561c915ede, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::GridManager
-  dontDestroyOnLoad: 0
+  _width: 20
+  _height: 20
+  _tileWidth: 1
+  _tileHeight: 0.5
+  _floorPrefab: {fileID: -8375949708664078590, guid: 839408635de6da949866c85243d48e4d, type: 3}
+  _floorRoot: {fileID: 2008164694}
+  _defaultFloorSprite: {fileID: 21300000, guid: 66c86572ed2123d42b84c66c45775fa1, type: 3}
 --- !u!1 &2008164693
 GameObject:
   m_ObjectHideFlags: 0
@@ -545,71 +551,9 @@ Transform:
   m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
-  m_Children:
-  - {fileID: 522684314}
+  m_Children: []
   m_Father: {fileID: 1349782989}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!1001 &8695075755162333309
-PrefabInstance:
-  m_ObjectHideFlags: 0
-  serializedVersion: 2
-  m_Modification:
-    serializedVersion: 3
-    m_TransformParent: {fileID: 2008164694}
-    m_Modifications:
-    - target: {fileID: 722590579695107432, guid: 7ed0d9d19841a3e41abb501dcfb03c25, type: 3}
-      propertyPath: m_LocalPosition.x
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 722590579695107432, guid: 7ed0d9d19841a3e41abb501dcfb03c25, type: 3}
-      propertyPath: m_LocalPosition.y
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 722590579695107432, guid: 7ed0d9d19841a3e41abb501dcfb03c25, type: 3}
-      propertyPath: m_LocalPosition.z
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 722590579695107432, guid: 7ed0d9d19841a3e41abb501dcfb03c25, type: 3}
-      propertyPath: m_LocalRotation.w
-      value: 1
-      objectReference: {fileID: 0}
-    - target: {fileID: 722590579695107432, guid: 7ed0d9d19841a3e41abb501dcfb03c25, type: 3}
-      propertyPath: m_LocalRotation.x
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 722590579695107432, guid: 7ed0d9d19841a3e41abb501dcfb03c25, type: 3}
-      propertyPath: m_LocalRotation.y
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 722590579695107432, guid: 7ed0d9d19841a3e41abb501dcfb03c25, type: 3}
-      propertyPath: m_LocalRotation.z
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 722590579695107432, guid: 7ed0d9d19841a3e41abb501dcfb03c25, type: 3}
-      propertyPath: m_LocalEulerAnglesHint.x
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 722590579695107432, guid: 7ed0d9d19841a3e41abb501dcfb03c25, type: 3}
-      propertyPath: m_LocalEulerAnglesHint.y
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 722590579695107432, guid: 7ed0d9d19841a3e41abb501dcfb03c25, type: 3}
-      propertyPath: m_LocalEulerAnglesHint.z
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 5461225456456356328, guid: 7ed0d9d19841a3e41abb501dcfb03c25, type: 3}
-      propertyPath: m_Name
-      value: FloorObj
-      objectReference: {fileID: 0}
-    - target: {fileID: 5461225456456356328, guid: 7ed0d9d19841a3e41abb501dcfb03c25, type: 3}
-      propertyPath: m_IsActive
-      value: 1
-      objectReference: {fileID: 0}
-    m_RemovedComponents: []
-    m_RemovedGameObjects: []
-    m_AddedGameObjects: []
-    m_AddedComponents: []
-  m_SourcePrefab: {fileID: 100100000, guid: 7ed0d9d19841a3e41abb501dcfb03c25, type: 3}
 --- !u!1660057539 &9223372036854775807
 SceneRoots:
   m_ObjectHideFlags: 0
