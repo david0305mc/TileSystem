@@ -5,12 +5,12 @@ public class UIIntro : MonoBehaviour
 {
     [SerializeField] private Button button;
 
-    // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Start()
     {
         button.onClick.AddListener(async () =>
         {
-            var result = await PopupManager.Instance.ShowPopup<PopupOK, bool>();
+            // var result = await PopupManager.Instance.ShowPopup<PopupOK, bool>();
+            // await SceneTransition.Instance.LoadSceneWithFadeAsync(GameDefine.MainSceneName);
 
         });
     }
