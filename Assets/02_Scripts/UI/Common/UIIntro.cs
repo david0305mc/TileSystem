@@ -1,3 +1,4 @@
+using Cysharp.Threading.Tasks;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -11,7 +12,7 @@ public class UIIntro : MonoBehaviour
         {
             // var result = await PopupManager.Instance.ShowPopup<PopupOK, bool>();
             // await SceneTransition.Instance.LoadSceneWithFadeAsync(GameDefine.MainSceneName);
-
+            GameManager.Instance.StartGame().Forget();
         });
     }
 
