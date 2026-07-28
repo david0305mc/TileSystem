@@ -14,7 +14,7 @@
       "dependencies": {
         "com.cysharp.unitask": "2.5.0"
       },
-      "hash": "a9430c97030db95bca889813f1ec3c6a7be80459"
+      "hash": "abbeadbb6a5ba3bd7f71b72e9ca24df7f08fca7f"
     },
     "com.david.popupmanager": {
       "version": "https://github.com/david0305mc/CommonModule.git?path=/Packages/com.david.popupmanager",
