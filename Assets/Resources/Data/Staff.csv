@@ -1,0 +1,4 @@
+ID|NameKey|Type|PrefabKey|MoveSpeed|WorkSpeed|HirePrice|Salary|UnlockLevel
+int|string|string|string|int|int|int|int|int
+400001|STAFF_NAME_400001|Waiter|Staff_Waiter_01|2.5|1|5000|100|2
+400002|STAFF_NAME_400002|Chef|Staff_Chef_01|2|1.2|8000|150|3

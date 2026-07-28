@@ -1,0 +1,4 @@
+ID|NameKey|IconKey|CookingFurnitureId|CookingTime|SellPrice|Exp|UnlockLevel
+int|string|string|int|int|int|int|int
+200001|RECIPE_NAME_200001|Recipe_Steak|100003|10|500|5|1
+200002|RECIPE_NAME_200002|Recipe_Pasta|100003|15|800|8|2

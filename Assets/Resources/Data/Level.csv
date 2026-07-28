@@ -1,0 +1,5 @@
+ID|RequiredExp|RewardGold|MaxTableCount|MaxStaffCount
+int|int|int|int|int
+1|0|0|2|0
+2|100|500|3|1
+3|300|1000|4|2

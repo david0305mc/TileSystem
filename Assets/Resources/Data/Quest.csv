@@ -1,0 +1,4 @@
+ID|NameKey|DescriptionKey|QuestType|TargetId|TargetValue|RewardType|RewardValue
+int|string|string|string|int|int|string|int
+500001|QUEST_NAME_500001|QUEST_DESC_500001|ServeRecipe|200001|5|Gold|1000
+500002|QUEST_NAME_500002|QUEST_DESC_500002|BuyFurniture|100001|1|Gem|5

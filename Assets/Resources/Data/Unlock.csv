@@ -1,0 +1,6 @@
+ID|UnlockLevel|ContentType|ContentId
+int|int|string|int
+1|2|Furniture|100004
+2|3|Furniture|100003
+3|3|Recipe|200002
+4|4|Staff|400002
