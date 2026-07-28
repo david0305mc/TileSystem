@@ -1,4 +1,4 @@
-using Unity.Mathematics;
+
 using UnityEngine;
 
 public class GridManager : MonoBehaviour
@@ -61,14 +61,23 @@ public class GridManager : MonoBehaviour
 
     private void UpdateGridRoot()
     {
-        _gridRoot.position = CalculateCenterOffset();
+        _gridRoot.localPosition = CalculateCenterOffset();
     }
-
     private void ClearFloorObjs()
     {
         for (int i = _floorRoot.childCount - 1; i >= 0; i--)
         {
-            Destroy(_floorRoot.GetChild(i).gameObject);
+            var child = _floorRoot.GetChild(i).gameObject;
+
+#if UNITY_EDITOR
+            if (!Application.isPlaying)
+            {
+                DestroyImmediate(child);
+                continue;
+            }
+#endif
+
+            Destroy(child);
         }
     }
     private void CreateFloorTileObjs()
@@ -85,9 +94,9 @@ public class GridManager : MonoBehaviour
     private void CreateFloorTileObj(Vector2Int gridPos)
     {
         var localPos = GridUtil.GridToWorld(gridPos, _tileWidth, _tileHeight);
-        var tileObj = Instantiate(_floorPrefab, localPos, quaternion.identity, _floorRoot);
+        var tileObj = Instantiate(_floorPrefab, _floorRoot);
         tileObj.transform.localPosition = localPos;
-        tileObj.transform.localRotation = quaternion.identity;
+        tileObj.transform.localRotation = Quaternion.identity;
         tileObj.Initialize(gridPos, _defaultFloorSprite);
         _floorTileObjs[gridPos.x, gridPos.y] = tileObj;
     }
