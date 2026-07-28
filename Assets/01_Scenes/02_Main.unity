@@ -516,6 +516,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: c3f2959b03e74dc4a906ca561c915ede, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::GridManager
+  dontDestroyOnLoad: 0
   _width: 20
   _height: 20
   _tileWidth: 1
@@ -524,6 +525,7 @@ MonoBehaviour:
   _floorRoot: {fileID: 2008164694}
   _gridRoot: {fileID: 1349782989}
   _defaultFloorSprite: {fileID: 21300000, guid: 66c86572ed2123d42b84c66c45775fa1, type: 3}
+  _stoneFloorSprite: {fileID: 21300000, guid: 467cdecf1d005ce47b712882d232f0a1, type: 3}
 --- !u!1 &2008164693
 GameObject:
   m_ObjectHideFlags: 0

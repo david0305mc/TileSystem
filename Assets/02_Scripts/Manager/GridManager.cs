@@ -1,8 +1,10 @@
 
 using UnityEngine;
+using UnityEngine.InputSystem;
 
-public class GridManager : MonoBehaviour
+public class GridManager : SingletonMono<GridManager>
 {
+
     [Header("Grid Size")]
     [SerializeField] private int _width = 50;
     [SerializeField] private int _height = 50;
@@ -16,15 +18,18 @@ public class GridManager : MonoBehaviour
     [SerializeField] private Transform _floorRoot;
     [SerializeField] private Transform _gridRoot;
     [SerializeField] private Sprite _defaultFloorSprite;
+    [SerializeField] private Sprite _stoneFloorSprite;
 
     private CellData[,] _cellDatas;
     private FloorTileObj[,] _floorTileObjs;
+    private Camera _mainCamera;
 
     public int Width => _width;
     public int Height => _height;
 
     void Start()
     {
+        _mainCamera = Camera.main;
         Initialize();
     }
     private void Initialize()
@@ -90,7 +95,44 @@ public class GridManager : MonoBehaviour
             }
         }
     }
+    void Update()
+    {
+        HandleFloorInput();
+    }
 
+    private void HandleFloorInput()
+    {
+        if (Pointer.current == null)
+        {
+            return;
+        }
+
+        if (!Pointer.current.press.wasPressedThisFrame)
+        {
+            return;
+        }
+
+        var screenPosition = Pointer.current.position.ReadValue();
+        var worldPosition = _mainCamera.ScreenToWorldPoint(screenPosition);
+
+        var hit = Physics2D.Raycast(
+            worldPosition,
+            Vector2.zero);
+
+        if (hit.collider == null)
+        {
+            Debug.Log($"타일 감지 실패: {worldPosition}");
+            return;
+        }
+
+        if (!hit.collider.TryGetComponent<FloorTileObj>(out var floorTileObj))
+        {
+            Debug.Log($"FloorTileObj 없음: {hit.collider.name}");
+            return;
+        }
+
+        ChangeFloorTile(floorTileObj.GridPos);
+    }
     private void CreateFloorTileObj(Vector2Int gridPos)
     {
         var localPos = GridUtil.GridToWorld(gridPos, _tileWidth, _tileHeight);
@@ -99,6 +141,16 @@ public class GridManager : MonoBehaviour
         tileObj.transform.localRotation = Quaternion.identity;
         tileObj.Initialize(gridPos, _defaultFloorSprite);
         _floorTileObjs[gridPos.x, gridPos.y] = tileObj;
+    }
+    public void ChangeFloorTile(Vector2Int gridPos)
+    {
+        if (!IsValidPosition(gridPos))
+        {
+            return;
+        }
+
+        var tile = _floorTileObjs[gridPos.x, gridPos.y];
+        tile.SetSprite(_stoneFloorSprite);
     }
     public bool IsValidPosition(Vector2Int position)
     {
