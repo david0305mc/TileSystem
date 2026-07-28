@@ -57,6 +57,7 @@ public partial class UserDataManager : Singleton<UserDataManager>
         if (!File.Exists(LocalUserDataPath))
         {
             Debug.Log("로컬 저장 파일이 없어 기본 데이터를 사용함");
+            User.CreateNewUser();
             return;
         }
 
@@ -67,6 +68,7 @@ public partial class UserDataManager : Singleton<UserDataManager>
             if (string.IsNullOrWhiteSpace(json))
             {
                 Debug.LogWarning("저장 파일이 비어 있어 기본 데이터를 사용함");
+                User.CreateNewUser();
                 return;
             }
 
@@ -74,6 +76,7 @@ public partial class UserDataManager : Singleton<UserDataManager>
             if (dto == null)
             {
                 Debug.LogWarning("역직렬화 결과가 null 이어서 기본 데이터를 사용함");
+                User.CreateNewUser();
                 return;
             }
 

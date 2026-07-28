@@ -11,4 +11,6 @@ public partial class UserDataManager : Singleton<UserDataManager>
         User = new UserData();
 
     }
+
+    
 }
