@@ -14,6 +14,7 @@ public class GridManager : MonoBehaviour
     [Header("References")]
     [SerializeField] private FloorTileObj _floorPrefab;
     [SerializeField] private Transform _floorRoot;
+    [SerializeField] private Transform _gridRoot;
     [SerializeField] private Sprite _defaultFloorSprite;
 
     private CellData[,] _cellDatas;
@@ -28,6 +29,8 @@ public class GridManager : MonoBehaviour
     }
     private void Initialize()
     {
+        UpdateGridRoot();
+        ClearFloorObjs();
         _cellDatas = new CellData[_width, _height];
         _floorTileObjs = new FloorTileObj[_width, _height];
 
@@ -46,7 +49,28 @@ public class GridManager : MonoBehaviour
             }
         }
     }
+    private Vector3 CalculateCenterOffset()
+    {
+        var centerX = (_width - 1) * 0.5f;
+        var centerY = (_height - 1) * 0.5f;
+        return new Vector3(
+            -(centerX - centerY) * _tileWidth * 0.5f,
+            -(centerX + centerY) * _tileHeight * 0.5f,
+            0f);
+    }
 
+    private void UpdateGridRoot()
+    {
+        _gridRoot.position = CalculateCenterOffset();
+    }
+
+    private void ClearFloorObjs()
+    {
+        for (int i = _floorRoot.childCount - 1; i >= 0; i--)
+        {
+            Destroy(_floorRoot.GetChild(i).gameObject);
+        }
+    }
     private void CreateFloorTileObjs()
     {
         for (int x = 0; x < _width; x++)
@@ -60,8 +84,10 @@ public class GridManager : MonoBehaviour
 
     private void CreateFloorTileObj(Vector2Int gridPos)
     {
-        var worldPos = GridUtil.GridToWorld(gridPos, _tileWidth, _tileHeight);
-        var tileObj = Instantiate(_floorPrefab, worldPos, quaternion.identity, _floorRoot);
+        var localPos = GridUtil.GridToWorld(gridPos, _tileWidth, _tileHeight);
+        var tileObj = Instantiate(_floorPrefab, localPos, quaternion.identity, _floorRoot);
+        tileObj.transform.localPosition = localPos;
+        tileObj.transform.localRotation = quaternion.identity;
         tileObj.Initialize(gridPos, _defaultFloorSprite);
         _floorTileObjs[gridPos.x, gridPos.y] = tileObj;
     }
