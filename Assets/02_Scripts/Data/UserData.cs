@@ -6,7 +6,7 @@ public sealed class UserDataDto
     public long NextPersistentUid;
     public UserCurrencyDataDto CurrencyDto = new();
     public Dictionary<int, SkillDataDto> SkillDtos = new();
-    public Dictionary<Vector2Int, TileDataDto> TileDtos = new();
+    public List<TileDataDto> TileDtos = new();
     public HeroDataDto HeroDto = new();
 }
 
@@ -15,9 +15,13 @@ public sealed class UserData : IDtoConvertible<UserDataDto>
     private const long DefaultPersistentUid = 1000;
 
     public long NextPersistentUid { get; private set; }
+
     public UserCurrencyData Currency { get; private set; } = new();
+
     public Dictionary<int, SkillData> Skills { get; private set; } = new();
-    public Dictionary<Vector2Int, TileData> Tiles { get; private set; } = new Dictionary<Vector2Int, TileData>();
+
+    public Dictionary<Vector2Int, TileData> Tiles { get; } = new();
+
     public HeroData Hero { get; private set; } = new();
 
     public void CreateNewUser()
@@ -40,6 +44,7 @@ public sealed class UserData : IDtoConvertible<UserDataDto>
             TableID = 1,
             Level = 1
         });
+
         CreateDefaultTiles();
     }
 
@@ -48,26 +53,27 @@ public sealed class UserData : IDtoConvertible<UserDataDto>
         if (dto == null)
             return;
 
+        NextPersistentUid = dto.NextPersistentUid > 0
+            ? dto.NextPersistentUid
+            : DefaultPersistentUid;
+
         if (dto.CurrencyDto != null)
             Currency.ApplyDto(dto.CurrencyDto);
 
-        DataMapperUtil.ApplyDtoDictionary(Skills, dto.SkillDtos, dtoValue =>
-        {
-            var skillData = new SkillData(dtoValue.SkillID);
-            skillData.ApplyDto(dtoValue);
-            return skillData;
-        });
-        DataMapperUtil.ApplyDtoDictionary(Tiles, dto.TileDtos, dtoValue =>
-        {
-            var tileData = new TileData(new Vector2Int(dtoValue.X, dtoValue.Y));
-            tileData.ApplyDto(dtoValue);
-            return tileData;
-        });
+        DataMapperUtil.ApplyDtoDictionary(
+            Skills,
+            dto.SkillDtos,
+            dtoValue =>
+            {
+                var skillData = new SkillData(dtoValue.SkillID);
+                skillData.ApplyDto(dtoValue);
+                return skillData;
+            });
+
+        ApplyTileDtos(dto.TileDtos);
 
         if (dto.HeroDto != null)
             Hero.ApplyDto(dto.HeroDto);
-
-        NextPersistentUid = dto.NextPersistentUid > 0 ? dto.NextPersistentUid : DefaultPersistentUid;
     }
 
     public UserDataDto ToDto()
@@ -76,8 +82,9 @@ public sealed class UserData : IDtoConvertible<UserDataDto>
         {
             NextPersistentUid = NextPersistentUid,
             CurrencyDto = Currency.ToDto(),
-            SkillDtos = DataMapperUtil.ToDtoDictionary<int, SkillData, SkillDataDto>(Skills),
-            TileDtos = DataMapperUtil.ToDtoDictionary<Vector2Int, TileData, TileDataDto>(Tiles),
+            SkillDtos =
+                DataMapperUtil.ToDtoDictionary<int, SkillData, SkillDataDto>(Skills),
+            TileDtos = ToTileDtos(),
             HeroDto = Hero.ToDto()
         };
     }
@@ -89,6 +96,42 @@ public sealed class UserData : IDtoConvertible<UserDataDto>
 
         return NextPersistentUid++;
     }
+
+    private void ApplyTileDtos(List<TileDataDto> tileDtos)
+    {
+        Tiles.Clear();
+
+        if (tileDtos == null)
+            return;
+
+        foreach (var tileDto in tileDtos)
+        {
+            if (tileDto == null)
+                continue;
+
+            var position = new Vector2Int(tileDto.X, tileDto.Y);
+            var tileData = new TileData(position);
+
+            tileData.ApplyDto(tileDto);
+            Tiles[position] = tileData;
+        }
+    }
+
+    private List<TileDataDto> ToTileDtos()
+    {
+        var result = new List<TileDataDto>(Tiles.Count);
+
+        foreach (var tileData in Tiles.Values)
+        {
+            if (tileData == null)
+                continue;
+
+            result.Add(tileData.ToDto());
+        }
+
+        return result;
+    }
+
     private void CreateDefaultTiles()
     {
         int width = GameDefine.TileWidth;
