@@ -1,10 +1,12 @@
 using System.Collections.Generic;
+using UnityEngine;
 
 public sealed class UserDataDto
 {
     public long UIDSeed;
     public UserCurrencyDataDto CurrencyDto = new();
     public Dictionary<int, SkillDataDto> SkillDtos = new();
+    public Dictionary<Vector2Int, TileDataDto> TileDtos = new();
     public HeroDataDto HeroDto = new();
 }
 
@@ -15,6 +17,7 @@ public sealed class UserData : IDtoConvertible<UserDataDto>
     public long NextPersistentUid { get; private set; } = DefaultPersistentUid;
     public UserCurrencyData Currency { get; private set; } = new();
     public Dictionary<int, SkillData> Skills { get; private set; } = new();
+    public Dictionary<Vector2Int, TileData> Tiles { get; private set; } = new Dictionary<Vector2Int, TileData>();
     public HeroData Hero { get; private set; } = new();
 
     public void ApplyDto(UserDataDto dto)
@@ -31,6 +34,12 @@ public sealed class UserData : IDtoConvertible<UserDataDto>
             skillData.ApplyDto(dtoValue);
             return skillData;
         });
+        DataMapperUtil.ApplyDtoDictionary(Tiles, dto.TileDtos, dtoValue =>
+        {
+            var tileData = new TileData(new Vector2Int(dtoValue.X, dtoValue.Y));
+            tileData.ApplyDto(dtoValue);
+            return tileData;
+        });
 
         if (dto.HeroDto != null)
             Hero.ApplyDto(dto.HeroDto);
@@ -45,6 +54,7 @@ public sealed class UserData : IDtoConvertible<UserDataDto>
             UIDSeed = NextPersistentUid,
             CurrencyDto = Currency.ToDto(),
             SkillDtos = DataMapperUtil.ToDtoDictionary<int, SkillData, SkillDataDto>(Skills),
+            TileDtos = DataMapperUtil.ToDtoDictionary<Vector2Int, TileData, TileDataDto >(Tiles),
             HeroDto = Hero.ToDto()
         };
     }

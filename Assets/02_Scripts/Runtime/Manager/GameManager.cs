@@ -16,6 +16,7 @@ public class GameManager : SingletonMono<GameManager>
 
         try
         {
+
             await DataManager.Instance.LoadDataAsync();
             UserDataManager.Instance.Init();
             await UserDataManager.Instance.LoadLocalDataAsync();
@@ -35,6 +36,6 @@ public class GameManager : SingletonMono<GameManager>
         {
             Debug.Log($"item {item.Value.namekey}");
         }
-        
+
     }
 }

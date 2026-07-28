@@ -1,5 +1,6 @@
 
 using R3;
+using UnityEngine;
 
 public sealed class UserCurrencyData : IDtoConvertible<UserCurrencyDataDto>
 {
@@ -98,4 +99,61 @@ public sealed class HeroDataDto
     public long UID;
     public int TableID;
     public long Level;
+}
+
+public sealed class TileData : IDtoConvertible<TileDataDto>
+{
+    public Vector2Int Position { get; }
+
+    public int TableID { get; set; }
+
+    public long FurnitureId { get; set; }
+
+    public bool IsUnlocked { get; set; }
+
+    public bool BlocksMovement { get; set; }
+
+    public bool IsOccupied => FurnitureId != 0;
+
+    public bool IsWalkable =>
+        IsUnlocked &&
+        !BlocksMovement;
+
+    public TileData(Vector2Int position)
+    {
+        Position = position;
+    }
+
+    public void ApplyDto(TileDataDto dto)
+    {
+        TableID = dto.TableID;
+        FurnitureId = dto.FurnitureId;
+        IsUnlocked = dto.IsUnlocked;
+        BlocksMovement = dto.BlocksMovement;
+    }
+
+    public TileDataDto ToDto()
+    {
+        return new TileDataDto()
+        {
+            X = Position.x,
+            Y = Position.y,
+            TableID = TableID,
+            FurnitureId = FurnitureId,
+            IsUnlocked = IsUnlocked,
+            BlocksMovement = BlocksMovement
+        };
+    }
+}
+
+public sealed class TileDataDto
+{
+    public int X;
+    public int Y;
+
+    public int TableID;
+    public long FurnitureId;
+
+    public bool IsUnlocked;
+    public bool BlocksMovement;
 }
