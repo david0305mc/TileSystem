@@ -11,10 +11,6 @@ public class UIIntro : MonoBehaviour
     {
         button.onClick.AddListener(async () =>
         {
-            // var result = await PopupManager.Instance.ShowPopup<PopupOK, bool>();
-            // await SceneTransition.Instance.LoadSceneWithFadeAsync(GameDefine.MainSceneName);
-            await DataManager.Instance.LoadDataAsync();
-
             GameManager.Instance.StartGame().Forget();
             button.gameObject.SetActive(false);
         });

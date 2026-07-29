@@ -792,7 +792,7 @@ MonoBehaviour:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 961739749}
-  m_Enabled: 0
+  m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 8972ce75a610624488019a07a9075934, type: 3}
   m_Name: 
@@ -1007,8 +1007,6 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::GridManager
   dontDestroyOnLoad: 0
-  _width: 20
-  _height: 20
   _tileWidth: 1
   _tileHeight: 0.5
   _floorPrefab: {fileID: -8375949708664078590, guid: 839408635de6da949866c85243d48e4d, type: 3}
