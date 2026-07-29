@@ -12,8 +12,8 @@ public static class GameDefine
     public static int Enemy01 = 1002;
     public static int Enemy02 = 1003;
 
-    public static int TileWidth = 20;
-    public static int TileHeight = 20;
+    public static int GridWidth = 20;
+    public static int GridHeight = 20;
     
 }
 

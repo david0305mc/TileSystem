@@ -21,6 +21,7 @@ public sealed class UserData : IDtoConvertible<UserDataDto>
     public Dictionary<int, SkillData> Skills { get; private set; } = new();
 
     public Dictionary<Vector2Int, TileData> Tiles { get; } = new();
+    public bool TryGetTileData(int x, int y, out TileData tileData) => Tiles.TryGetValue(new Vector2Int(x, y), out tileData);
 
     public HeroData Hero { get; private set; } = new();
 
@@ -134,8 +135,8 @@ public sealed class UserData : IDtoConvertible<UserDataDto>
 
     private void CreateDefaultTiles()
     {
-        int width = GameDefine.TileWidth;
-        int height = GameDefine.TileHeight;
+        int width = GameDefine.GridWidth;
+        int height = GameDefine.GridHeight;
 
         for (var y = 0; y < height; y++)
         {

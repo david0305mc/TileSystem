@@ -5,10 +5,6 @@ using UnityEngine.InputSystem;
 public class GridManager : SingletonMono<GridManager>
 {
 
-    [Header("Grid Size")]
-    [SerializeField] private int _width = 50;
-    [SerializeField] private int _height = 50;
-
     [Header("Tile Size")]
     [SerializeField] private float _tileWidth = 1f;
     [SerializeField] private float _tileHeight = 0.5f;
@@ -20,12 +16,8 @@ public class GridManager : SingletonMono<GridManager>
     [SerializeField] private Sprite _defaultFloorSprite;
     [SerializeField] private Sprite _stoneFloorSprite;
 
-    private CellData[,] _cellDatas;
     private FloorTileObj[,] _floorTileObjs;
     private Camera _mainCamera;
-
-    public int Width => _width;
-    public int Height => _height;
 
     void Start()
     {
@@ -36,28 +28,15 @@ public class GridManager : SingletonMono<GridManager>
     {
         UpdateGridRoot();
         ClearFloorObjs();
-        _cellDatas = new CellData[_width, _height];
-        _floorTileObjs = new FloorTileObj[_width, _height];
+        _floorTileObjs = new FloorTileObj[GameDefine.GridWidth, GameDefine.GridHeight];
 
-        CreateCellData();
         CreateFloorTileObjs();
     }
 
-    private void CreateCellData()
-    {
-        for (int x = 0; x < _width; x++)
-        {
-            for (int y = 0; y < _height; y++)
-            {
-                var pos = new Vector2Int(x, y);
-                _cellDatas[x, y] = new CellData(pos);
-            }
-        }
-    }
     private Vector3 CalculateCenterOffset()
     {
-        var centerX = (_width - 1) * 0.5f;
-        var centerY = (_height - 1) * 0.5f;
+        var centerX = (GameDefine.GridWidth - 1) * 0.5f;
+        var centerY = (GameDefine.GridHeight - 1) * 0.5f;
         return new Vector3(
             -(centerX - centerY) * _tileWidth * 0.5f,
             -(centerX + centerY) * _tileHeight * 0.5f,
@@ -81,15 +60,14 @@ public class GridManager : SingletonMono<GridManager>
                 continue;
             }
 #endif
-
             Destroy(child);
         }
     }
     private void CreateFloorTileObjs()
     {
-        for (int x = 0; x < _width; x++)
+        for (int x = 0; x < GameDefine.GridWidth; x++)
         {
-            for (int y = 0; y < _height; y++)
+            for (int y = 0; y < GameDefine.GridHeight; y++)
             {
                 CreateFloorTileObj(new Vector2Int(x, y));
             }
@@ -139,7 +117,10 @@ public class GridManager : SingletonMono<GridManager>
         var tileObj = Instantiate(_floorPrefab, _floorRoot);
         tileObj.transform.localPosition = localPos;
         tileObj.transform.localRotation = Quaternion.identity;
-        tileObj.Initialize(gridPos, _defaultFloorSprite);
+        tileObj.Initialize(gridPos, _defaultFloorSprite, () =>
+        {
+            ChangeFloorTile(gridPos);
+        });
         _floorTileObjs[gridPos.x, gridPos.y] = tileObj;
     }
     public void ChangeFloorTile(Vector2Int gridPos)
@@ -154,19 +135,7 @@ public class GridManager : SingletonMono<GridManager>
     }
     public bool IsValidPosition(Vector2Int position)
     {
-        return position.x >= 0 &&
-               position.x < Width &&
-               position.y >= 0 &&
-               position.y < Height;
-    }
-    public CellData GetCell(Vector2Int position)
-    {
-        if (!IsValidPosition(position))
-        {
-            return null;
-        }
-
-        return _cellDatas[position.x, position.y];
+        return position.x >= 0 && position.x < GameDefine.GridWidth && position.y >= 0 && position.y < GameDefine.GridHeight;
     }
 
     public FloorTileObj GetFloorView(Vector2Int position)

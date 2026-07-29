@@ -5,8 +5,11 @@ public class FloorTileObj : MonoBehaviour
     [SerializeField] private SpriteRenderer _spriteRenderer;
     private Vector2Int _gridPos;
     public Vector2Int GridPos => _gridPos;
-    public void Initialize(Vector2Int gridPos, Sprite sprite)
+
+    private System.Action _touchAction;
+    public void Initialize(Vector2Int gridPos, Sprite sprite, System.Action touchAction)
     {
+        touchAction = _touchAction;
         name = $"Floor_{gridPos.x}_{gridPos.y}";
         _gridPos = gridPos;
         _spriteRenderer.sprite = sprite;
@@ -18,6 +21,6 @@ public class FloorTileObj : MonoBehaviour
     private void OnMouseDown()
     {
         Debug.Log("OnMouseDown");
-        GridManager.Instance.ChangeFloorTile(_gridPos);
+        _touchAction?.Invoke();
     }
 }
