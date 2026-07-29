@@ -14,6 +14,8 @@ public class GameManager : SingletonMono<GameManager>
             return;
         }
 
+        _isStartingGame = true;
+
         try
         {
 
