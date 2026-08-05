@@ -9,7 +9,7 @@ public class CameraControllerTest : MonoBehaviour
 
     [SerializeField] private Vector2 _worldMin;
     [SerializeField] private Vector2 _worldMax;
-    [SerializeField] private float _cameraDamping = 30f;
+    [SerializeField] private float _cameraDamping = 8f;
 
     private bool _isDragging;
     private Vector2 _previousPosition;
@@ -55,6 +55,7 @@ public class CameraControllerTest : MonoBehaviour
 
     private void BeginDrag(Vector2 pointerPosition)
     {
+        _velocity = Vector3.zero;
         _isDragging = true;
         _previousPosition = pointerPosition;
     }
@@ -99,7 +100,8 @@ public class CameraControllerTest : MonoBehaviour
         if (!_isDragging)
         {
             transform.position += _velocity * Time.deltaTime;
-            _velocity = Vector3.Lerp(_velocity, Vector3.zero, _cameraDamping * Time.deltaTime);
+            float damping = Mathf.Exp(-_cameraDamping * Time.deltaTime);
+            _velocity *= damping;
             if (_velocity.sqrMagnitude < 0.001f)
             {
                 _velocity = Vector3.zero;
