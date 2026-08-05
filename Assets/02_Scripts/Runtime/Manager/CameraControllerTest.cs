@@ -9,9 +9,11 @@ public class CameraControllerTest : MonoBehaviour
 
     [SerializeField] private Vector2 _worldMin;
     [SerializeField] private Vector2 _worldMax;
+    [SerializeField] private float _cameraDamping = 30f;
 
     private bool _isDragging;
     private Vector2 _previousPosition;
+    private Vector3 _velocity;
 
     void Awake()
     {
@@ -21,6 +23,8 @@ public class CameraControllerTest : MonoBehaviour
     void Update()
     {
         HandleMouseDrag();
+        Intertia();
+        ClampCameraPosition();
     }
 
     private void HandleMouseDrag()
@@ -64,8 +68,8 @@ public class CameraControllerTest : MonoBehaviour
         Vector3 currWorldPos = ScreenToWorldPosition(_camera, pointerPosition);
 
         var delta = prevWorldPos - currWorldPos;
-        _camera.transform.position += new Vector3(delta.x, delta.y, 0);
-        ClampCameraPosition();
+        transform.position += new Vector3(delta.x, delta.y, 0);
+        _velocity = delta / Time.deltaTime;
 
         _previousPosition = pointerPosition;
     }
@@ -80,13 +84,27 @@ public class CameraControllerTest : MonoBehaviour
         float halfHeight = _camera.orthographicSize;
         float halfWidth = halfHeight * _camera.aspect;
 
-        var x = Mathf.Clamp(_camera.transform.position.x, _worldMin.x + halfWidth, _worldMax.x - halfWidth);
-        var y = Mathf.Clamp(_camera.transform.position.y, _worldMin.y + halfHeight, _worldMax.y - halfHeight);
-        _camera.transform.position = new Vector3(x, y, _camera.transform.position.z);
+        var x = Mathf.Clamp(transform.position.x, _worldMin.x + halfWidth, _worldMax.x - halfWidth);
+        var y = Mathf.Clamp(transform.position.y, _worldMin.y + halfHeight, _worldMax.y - halfHeight);
+        transform.position = new Vector3(x, y, transform.position.z);
     }
 
     public static Vector3 ScreenToWorldPosition(Camera camera, Vector3 worldPos)
     {
         return camera.ScreenToWorldPoint(new Vector3(worldPos.x, worldPos.y, Mathf.Abs(camera.transform.position.z)));
+    }
+
+    private void Intertia()
+    {
+        if (!_isDragging)
+        {
+            transform.position += _velocity * Time.deltaTime;
+            _velocity = Vector3.Lerp(_velocity, Vector3.zero, _cameraDamping * Time.deltaTime);
+            if (_velocity.sqrMagnitude < 0.001f)
+            {
+                _velocity = Vector3.zero;
+            }
+
+        }
     }
 }
