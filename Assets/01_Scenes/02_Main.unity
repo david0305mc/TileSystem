@@ -866,6 +866,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::CameraControllerTest
   _camera: {fileID: 961739752}
+  _worldMin: {x: -15, y: -10}
+  _worldMax: {x: 15, y: 10}
 --- !u!1 &1046554341
 GameObject:
   m_ObjectHideFlags: 0
