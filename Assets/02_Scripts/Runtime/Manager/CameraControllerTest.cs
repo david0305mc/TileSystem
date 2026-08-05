@@ -23,7 +23,7 @@ public class CameraControllerTest : MonoBehaviour
     void Update()
     {
         HandleMouseDrag();
-        Intertia();
+        ApplyIntertia();
         ClampCameraPosition();
     }
 
@@ -70,8 +70,9 @@ public class CameraControllerTest : MonoBehaviour
 
         var delta = prevWorldPos - currWorldPos;
         transform.position += new Vector3(delta.x, delta.y, 0);
-        _velocity = delta / Time.deltaTime;
-
+        var currenVelocity = delta / Time.deltaTime;
+        _velocity = Vector3.Lerp(_velocity, currenVelocity, 20 * Time.deltaTime);
+        
         _previousPosition = pointerPosition;
     }
 
@@ -95,7 +96,7 @@ public class CameraControllerTest : MonoBehaviour
         return camera.ScreenToWorldPoint(new Vector3(worldPos.x, worldPos.y, Mathf.Abs(camera.transform.position.z)));
     }
 
-    private void Intertia()
+    private void ApplyIntertia()
     {
         if (!_isDragging)
         {
