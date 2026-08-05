@@ -242,9 +242,7 @@ public class CameraController : MonoBehaviour
     {
         previousCameraPosition = transform.position;
 
-        MoveCamera(
-            previousPointerPosition,
-            currentPointerPosition);
+        MoveCamera(previousPointerPosition, currentPointerPosition);
 
         CalculateDragVelocity();
 

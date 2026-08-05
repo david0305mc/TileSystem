@@ -75,7 +75,7 @@ public class GridManager : SingletonMono<GridManager>
     }
     void Update()
     {
-        HandleFloorInput();
+        // HandleFloorInput();
     }
 
     private void HandleFloorInput()
