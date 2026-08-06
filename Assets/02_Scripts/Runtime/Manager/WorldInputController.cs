@@ -4,7 +4,6 @@ using UnityEngine.InputSystem;
 
 public class WorldInputController : MonoBehaviour
 {
-
     private Camera _camera;
 
     void Start()

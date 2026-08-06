@@ -113,7 +113,7 @@ public class GridManager : SingletonMono<GridManager>
     }
     private void CreateFloorTileObj(Vector2Int gridPos)
     {
-        var localPos = GridUtil.GridToWorld(gridPos, _tileWidth, _tileHeight);
+        var localPos = GridToWorld(gridPos);
         var tileObj = Instantiate(_floorPrefab, _floorRoot);
         tileObj.transform.localPosition = localPos;
         tileObj.transform.localRotation = Quaternion.identity;
@@ -123,6 +123,11 @@ public class GridManager : SingletonMono<GridManager>
         });
         _floorTileObjs[gridPos.x, gridPos.y] = tileObj;
     }
+    private void CreateBuildingObj(Vector2Int gridPos)
+    {
+        
+    }
+    
     public void ChangeFloorTile(Vector2Int gridPos)
     {
         if (!IsValidPosition(gridPos))
@@ -146,5 +151,10 @@ public class GridManager : SingletonMono<GridManager>
         }
 
         return _floorTileObjs[position.x, position.y];
+    }
+
+    private Vector3 GridToWorld(Vector2Int gridPosition)
+    {
+        return GridUtil.GridToWorld(gridPosition, _tileWidth, _tileHeight);
     }
 }
