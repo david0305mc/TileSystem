@@ -11,6 +11,7 @@ public class GridManager : SingletonMono<GridManager>
 
     [Header("References")]
     [SerializeField] private FloorTileObj _floorPrefab;
+    [SerializeField] private PlaceableObj _placeableObjPrefab;
     [SerializeField] private Transform _floorRoot;
     [SerializeField] private Transform _gridRoot;
     [SerializeField] private Sprite _defaultFloorSprite;
@@ -31,6 +32,17 @@ public class GridManager : SingletonMono<GridManager>
         _floorTileObjs = new FloorTileObj[GameDefine.GridWidth, GameDefine.GridHeight];
 
         CreateFloorTileObjs();
+        GenerateBuildingRandom();
+    }
+    private void GenerateBuildingRandom()
+    {
+        for (int i = 0; i < 5; i++)
+        {
+            int x = Random.Range(0, GameDefine.GridWidth);
+            int y = Random.Range(0, GameDefine.GridHeight);
+
+            CreateBuildingObj(new Vector2Int(x, y));
+        }
     }
 
     private Vector3 CalculateCenterOffset()
@@ -125,6 +137,10 @@ public class GridManager : SingletonMono<GridManager>
     }
     private void CreateBuildingObj(Vector2Int gridPos)
     {
+        var localPos = GridToWorld(gridPos);
+        var placeableObj = Lean.Pool.LeanPool.Spawn(_placeableObjPrefab);
+        placeableObj.transform.localPosition = localPos;
+        placeableObj.transform.localRotation = Quaternion.identity;
         
     }
     
