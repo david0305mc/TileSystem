@@ -138,7 +138,7 @@ public class GridManager : SingletonMono<GridManager>
     private void CreateBuildingObj(Vector2Int gridPos)
     {
         var localPos = GridToWorld(gridPos);
-        var placeableObj = Lean.Pool.LeanPool.Spawn(_placeableObjPrefab);
+        PlaceableObj placeableObj = Lean.Pool.LeanPool.Spawn(_placeableObjPrefab, _gridRoot);
         placeableObj.transform.localPosition = localPos;
         placeableObj.transform.localRotation = Quaternion.identity;
         
