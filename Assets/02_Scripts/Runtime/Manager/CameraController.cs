@@ -79,7 +79,7 @@ public class CameraController : MonoBehaviour
 
     #region Mouse
 
-    private void HandleMouseDrag()
+    public void HandleMouseDrag()
     {
         Mouse mouse = Mouse.current;
 
@@ -113,7 +113,7 @@ public class CameraController : MonoBehaviour
         UpdateDrag(pointerPosition);
     }
 
-    private void HandleMouseZoom()
+    public void HandleMouseZoom()
     {
         Mouse mouse = Mouse.current;
 
@@ -138,7 +138,7 @@ public class CameraController : MonoBehaviour
 
     #region Touch
 
-    private void HandleTouchInput()
+    public void HandleTouchInput()
     {
         var touches = Touch.activeTouches;
 
