@@ -21,7 +21,8 @@ public class WorldInputController : MonoBehaviour
 
         HandleMouseDrag();
 #endif
-
+        cameraController.HandleMouseDrag();
+        cameraController.HandleMouseZoom();
 
         // if (mouse.leftButton.wasPressedThisFrame)
         // {
@@ -52,6 +53,9 @@ public class WorldInputController : MonoBehaviour
         Vector2 mousePosition = mouse.position.ReadValue();
         if (mouse.leftButton.wasPressedThisFrame)
         {
+            if (IsPointerOverUI())
+                return;
+
             HandleDragBegin(mousePosition);
         }
         else if (mouse.leftButton.isPressed)

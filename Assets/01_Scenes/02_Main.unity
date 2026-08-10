@@ -478,50 +478,6 @@ RectTransform:
   m_CorrespondingSourceObject: {fileID: 712168396834015779, guid: 44788406831b68244a434005cbbd8038, type: 3}
   m_PrefabInstance: {fileID: 449658772}
   m_PrefabAsset: {fileID: 0}
---- !u!1 &740601298
-GameObject:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
-  m_Component:
-  - component: {fileID: 740601300}
-  - component: {fileID: 740601299}
-  m_Layer: 0
-  m_Name: 'WorldInputController '
-  m_TagString: Untagged
-  m_Icon: {fileID: 0}
-  m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
-  m_IsActive: 1
---- !u!114 &740601299
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 740601298}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: de49b0f43a0ad0c438e42eaf82f64f94, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::WorldInputController
---- !u!4 &740601300
-Transform:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 740601298}
-  serializedVersion: 2
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: -10.03263, y: 0, z: -9.26128}
-  m_LocalScale: {x: 1, y: 1, z: 1}
-  m_ConstrainProportionsScale: 0
-  m_Children: []
-  m_Father: {fileID: 0}
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &859525898
 GameObject:
   m_ObjectHideFlags: 0
@@ -704,7 +660,6 @@ GameObject:
   - component: {fileID: 961739751}
   - component: {fileID: 961739750}
   - component: {fileID: 961739754}
-  - component: {fileID: 961739755}
   m_Layer: 0
   m_Name: Main Camera
   m_TagString: MainCamera
@@ -837,7 +792,7 @@ MonoBehaviour:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 961739749}
-  m_Enabled: 0
+  m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 8972ce75a610624488019a07a9075934, type: 3}
   m_Name: 
@@ -853,31 +808,6 @@ MonoBehaviour:
   maxOrthographicSize: 8
   mouseZoomSpeed: 0.5
   pinchZoomSpeed: 0.01
---- !u!114 &961739755
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 961739749}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 763ab2dde65f8094baca45b1533339c6, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::CameraControllerTest
-  _camera: {fileID: 961739752}
-  _worldMin: {x: -15, y: -10}
-  _worldMax: {x: 15, y: 10}
-  _cameraDamping: 8
-  _velocitySmoothing: 20
-  _stopSpeed: 0.01
-  _minZoom: 2
-  _maxZoom: 10
-  _mouseZoomSpeed: 1
-  _pinchZoomSensitivity: 1
-  _limitZoomToWorldBounds: 1
-  _dragPlaneZ: 0
-  _enableTouchInput: 1
 --- !u!1 &1046554341
 GameObject:
   m_ObjectHideFlags: 0
@@ -887,6 +817,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 1046554342}
+  - component: {fileID: 1046554343}
   m_Layer: 0
   m_Name: CameraRoot
   m_TagString: Untagged
@@ -910,6 +841,19 @@ Transform:
   - {fileID: 961739753}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &1046554343
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1046554341}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: de49b0f43a0ad0c438e42eaf82f64f94, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::WorldInputController
+  cameraController: {fileID: 961739754}
 --- !u!1 &1295494969
 GameObject:
   m_ObjectHideFlags: 0
@@ -1263,4 +1207,3 @@ SceneRoots:
   - {fileID: 1046554342}
   - {fileID: 415851286}
   - {fileID: 277775135}
-  - {fileID: 740601300}

@@ -68,12 +68,12 @@ public class CameraController : MonoBehaviour
             return;
         }
 
-#if UNITY_EDITOR || UNITY_STANDALONE
-        HandleMouseDrag();
-        HandleMouseZoom();
-#endif
+// #if UNITY_EDITOR || UNITY_STANDALONE
+//         HandleMouseDrag();
+//         HandleMouseZoom();
+// #endif
 
-        HandleTouchInput();
+//         HandleTouchInput();
         HandleInertia();
     }
 
