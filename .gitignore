@@ -12,6 +12,7 @@
 /.utmp/*
 /ait-build/
 /webgl/
+/Build/
 .vscode
 *.csproj.lscache
 
