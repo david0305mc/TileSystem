@@ -6,6 +6,7 @@
     "com.david.popupmanager": "https://github.com/david0305mc/CommonModule.git?path=/Packages/com.david.popupmanager",
     "com.david.utils": "https://github.com/david0305mc/CommonModule.git?path=/Packages/com.david.utils",
     "com.github-glitchenzo.nugetforunity": "https://github.com/GlitchEnzo/NuGetForUnity.git?path=/src/NuGetForUnity",
+    "com.inspiaaa.unityhfsm": "2.3.0",
     "com.unity.2d.sprite": "1.0.0",
     "com.unity.ai.navigation": "2.0.14",
     "com.unity.collab-proxy": "2.12.4",
@@ -53,5 +54,14 @@
     "com.unity.modules.vr": "1.0.0",
     "com.unity.modules.wind": "1.0.0",
     "com.unity.modules.xr": "1.0.0"
-  }
+  },
+  "scopedRegistries": [
+    {
+      "name": "OpenUPM",
+      "url": "https://package.openupm.com/",
+      "scopes": [
+        "com.inspiaaa.unityhfsm"
+      ]
+    }
+  ]
 }
