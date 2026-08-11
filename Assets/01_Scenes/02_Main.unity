@@ -853,7 +853,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: de49b0f43a0ad0c438e42eaf82f64f94, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::WorldInputController
-  cameraController: {fileID: 961739754}
+  _InteractableLayer:
+    serializedVersion: 2
+    m_Bits: 4294967295
+  _cameraController: {fileID: 961739754}
 --- !u!1 &1295494969
 GameObject:
   m_ObjectHideFlags: 0

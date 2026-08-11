@@ -33,6 +33,7 @@ public class CameraController : MonoBehaviour
     [SerializeField] private float pinchZoomSpeed = 0.01f;
 
     private Camera targetCamera;
+    public Camera Camera => targetCamera;
 
     private Vector2 previousPointerPosition;
     private bool isDragging;
@@ -229,7 +230,7 @@ public class CameraController : MonoBehaviour
 
     #region Drag
 
-    private void BeginDrag(Vector2 pointerPosition)
+    public void BeginDrag(Vector2 pointerPosition)
     {
         previousPointerPosition = pointerPosition;
         previousCameraPosition = transform.position;
@@ -238,7 +239,7 @@ public class CameraController : MonoBehaviour
         inertiaVelocity = Vector3.zero;
     }
 
-    private void UpdateDrag(Vector2 currentPointerPosition)
+    public void UpdateDrag(Vector2 currentPointerPosition)
     {
         previousCameraPosition = transform.position;
 
@@ -249,7 +250,7 @@ public class CameraController : MonoBehaviour
         previousPointerPosition = currentPointerPosition;
     }
 
-    private void EndDrag()
+    public void EndDrag()
     {
         isDragging = false;
     }

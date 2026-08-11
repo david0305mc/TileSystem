@@ -4,15 +4,13 @@ using UnityEngine.InputSystem;
 
 public class WorldInputController : MonoBehaviour
 {
-    [SerializeField] private CameraController cameraController;
-    private Camera _camera;
+    [SerializeField] private LayerMask _InteractableLayer;
+    [SerializeField] private CameraController _cameraController;
 
     private bool _isDragging;
+    private bool _isDraggingObject;
+    private IPointerInteractable _pressedObj;
 
-    void Start()
-    {
-        _camera = Camera.main;
-    }
     void Update()
     {
 
@@ -21,25 +19,8 @@ public class WorldInputController : MonoBehaviour
 
         HandleMouseDrag();
 #endif
-        cameraController.HandleMouseDrag();
-        cameraController.HandleMouseZoom();
-
-        // if (mouse.leftButton.wasPressedThisFrame)
-        // {
-        //     Debug.Log("Point Down");
-        // }
-
-        // if (mouse.leftButton.wasReleasedThisFrame)
-        // {
-        //     var screenPos = mouse.position.ReadValue();
-        //     var worldPos = _camera.ScreenToWorldPoint(screenPos);
-
-        //     Collider2D collider = Physics2D.OverlapPoint(worldPos);
-        //     if (collider != null)
-        //     {
-        //         Debug.Log($"collider {collider.name}");
-        //     }
-        // }
+        // _cameraController.HandleMouseDrag();
+        // _cameraController.HandleMouseZoom();
 
     }
     private bool IsPointerOverUI()
@@ -73,19 +54,65 @@ public class WorldInputController : MonoBehaviour
         if (_isDragging)
             return;
         _isDragging = true;
+        var interactableObj = FindInteractableObj(point);
+        if (interactableObj != null)
+        {
+            var worldPos = _cameraController.Camera.ScreenToWorldPoint(point);
+            _isDraggingObject = true;
+            _pressedObj = interactableObj;
+            _pressedObj.OnPointerDown(worldPos);
+        }
+        else
+        {
+            _cameraController.BeginDrag(point);
+        }
     }
 
     private void HandleDragUpdate(Vector2 point)
     {
         if (!_isDragging)
             return;
+
+        if (_isDraggingObject)
+        {
+            var worldPos = _cameraController.Camera.ScreenToWorldPoint(point);
+            _pressedObj.OnPointerDrag(worldPos);
+        }
+        else
+        {
+            _cameraController.UpdateDrag(point);
+        }
     }
 
     private void HandleDragEnd()
     {
         if (!_isDragging)
             return;
+
+        if (_isDraggingObject)
+        {
+            _pressedObj.OnPointerUp();
+        }
+        else
+        {
+            _cameraController.EndDrag();
+        }
         _isDragging = false;
+        _isDraggingObject = false;
+        _pressedObj = null;
+    }
+
+
+    IPointerInteractable FindInteractableObj(Vector2 point)
+    {
+        var worldPos = _cameraController.Camera.ScreenToWorldPoint(point);
+        var hit = Physics2D.Raycast(worldPos, Vector2.zero, 0, _InteractableLayer);
+        if (hit.collider == null)
+        {
+            return null;
+        }
+        hit.collider.gameObject.TryGetComponent(out IPointerInteractable interactableObj);
+        return interactableObj;
     }
 
 }
