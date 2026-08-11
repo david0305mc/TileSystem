@@ -1029,6 +1029,7 @@ MonoBehaviour:
   _tileHeight: 0.5
   _floorPrefab: {fileID: -8375949708664078590, guid: 839408635de6da949866c85243d48e4d, type: 3}
   _placeableObjPrefab: {fileID: 6404620310911643539, guid: 5eace4fdcd4176d40ab923ea86069ff8, type: 3}
+  _npcObjPrefab: {fileID: 5651863891283274296, guid: 3313d758a10a91442b45a61d7cca5676, type: 3}
   _floorRoot: {fileID: 2008164694}
   _gridRoot: {fileID: 1349782989}
   _defaultFloorSprite: {fileID: 21300000, guid: 66c86572ed2123d42b84c66c45775fa1, type: 3}

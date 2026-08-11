@@ -1,4 +1,5 @@
 
+using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.InputSystem;
 
@@ -12,13 +13,18 @@ public class GridManager : SingletonMono<GridManager>
     [Header("References")]
     [SerializeField] private FloorTileObj _floorPrefab;
     [SerializeField] private PlaceableObj _placeableObjPrefab;
+    [SerializeField] private NpcObj _npcObjPrefab;
     [SerializeField] private Transform _floorRoot;
     [SerializeField] private Transform _gridRoot;
     [SerializeField] private Sprite _defaultFloorSprite;
     [SerializeField] private Sprite _stoneFloorSprite;
 
     private FloorTileObj[,] _floorTileObjs;
+    private bool[,] _blockedCells;
+    private AStarPathfinder _pathfinder;
     private Camera _mainCamera;
+
+    public AStarPathfinder Pathfinder => _pathfinder;
 
     void Start()
     {
@@ -30,19 +36,77 @@ public class GridManager : SingletonMono<GridManager>
         UpdateGridRoot();
         ClearFloorObjs();
         _floorTileObjs = new FloorTileObj[GameDefine.GridWidth, GameDefine.GridHeight];
+        _blockedCells = new bool[GameDefine.GridWidth, GameDefine.GridHeight];
+        _pathfinder = new AStarPathfinder(
+            GameDefine.GridWidth,
+            GameDefine.GridHeight,
+            IsWalkable);
 
         CreateFloorTileObjs();
         GenerateBuildingRandom();
+        GenerateNpcRandom();
     }
     private void GenerateBuildingRandom()
     {
-        for (int i = 0; i < 5; i++)
+        var createdCount = 0;
+        var attemptCount = 0;
+
+        while (createdCount < 5 && attemptCount++ < 100)
         {
             int x = Random.Range(0, GameDefine.GridWidth);
             int y = Random.Range(0, GameDefine.GridHeight);
+            var gridPosition = new Vector2Int(x, y);
 
-            CreateBuildingObj(new Vector2Int(x, y));
+            if (!IsWalkable(gridPosition))
+            {
+                continue;
+            }
+
+            CreateBuildingObj(gridPosition);
+            createdCount++;
         }
+    }
+
+    private void GenerateNpcRandom()
+    {
+        var attemptCount = 0;
+        var createdCount = 0;
+        while (createdCount < 1 && attemptCount++ < 100)
+        {
+            int x = Random.Range(0, GameDefine.GridWidth);
+            int y = Random.Range(0, GameDefine.GridHeight);
+            var gridPosition = new Vector2Int(x, y);
+
+            if (!IsWalkable(gridPosition))
+            {
+                continue;
+            }
+
+            var npcObj = CreateNpc(gridPosition);
+            npcObj.MoveTo(GetRandomGridPos());
+
+            createdCount++;
+        }
+    }
+
+    Vector2Int GetRandomGridPos()
+    {
+        var attemptCount = 0;
+        var createdCount = 0;
+        while (createdCount < 1 && attemptCount++ < 100)
+        {
+            int x = Random.Range(0, GameDefine.GridWidth);
+            int y = Random.Range(0, GameDefine.GridHeight);
+            var gridPosition = new Vector2Int(x, y);
+
+            if (!IsWalkable(gridPosition))
+            {
+                continue;
+            }
+            createdCount++;
+            return new Vector2Int(x, y);
+        }
+        return new Vector2Int(0, 0);
     }
 
     private Vector3 CalculateCenterOffset()
@@ -137,13 +201,18 @@ public class GridManager : SingletonMono<GridManager>
     }
     private void CreateBuildingObj(Vector2Int gridPos)
     {
+        if (!IsWalkable(gridPos))
+        {
+            return;
+        }
+
         var localPos = GridToWorld(gridPos);
         PlaceableObj placeableObj = Lean.Pool.LeanPool.Spawn(_placeableObjPrefab, _gridRoot);
         placeableObj.transform.localPosition = localPos;
         placeableObj.transform.localRotation = Quaternion.identity;
-        
+        SetBlocked(gridPos, true);
     }
-    
+
     public void ChangeFloorTile(Vector2Int gridPos)
     {
         if (!IsValidPosition(gridPos))
@@ -157,6 +226,105 @@ public class GridManager : SingletonMono<GridManager>
     public bool IsValidPosition(Vector2Int position)
     {
         return position.x >= 0 && position.x < GameDefine.GridWidth && position.y >= 0 && position.y < GameDefine.GridHeight;
+    }
+
+    public bool IsWalkable(Vector2Int position)
+    {
+        return IsValidPosition(position) && (_blockedCells == null || !_blockedCells[position.x, position.y]);
+    }
+
+    public bool SetBlocked(Vector2Int position, bool blocked)
+    {
+        if (!IsValidPosition(position) || _blockedCells == null)
+        {
+            return false;
+        }
+
+        _blockedCells[position.x, position.y] = blocked;
+        return true;
+    }
+
+    public bool TryFindPath(
+        Vector2Int start,
+        Vector2Int target,
+        out List<Vector2Int> path)
+    {
+        if (_pathfinder == null)
+        {
+            path = null;
+            return false;
+        }
+
+        return _pathfinder.TryFindPath(start, target, out path);
+    }
+
+    public bool TryFindWorldPath(
+        Vector3 startWorldPosition,
+        Vector3 targetWorldPosition,
+        out List<Vector3> worldPath)
+    {
+        worldPath = null;
+
+        if (!TryWorldToGridPosition(startWorldPosition, out var start) ||
+            !TryWorldToGridPosition(targetWorldPosition, out var target) ||
+            !TryFindPath(start, target, out var gridPath))
+        {
+            return false;
+        }
+
+        worldPath = new List<Vector3>(gridPath.Count);
+        foreach (var gridPosition in gridPath)
+        {
+            worldPath.Add(GridToWorldPosition(gridPosition));
+        }
+
+        return true;
+    }
+
+    public Vector3 GridToWorldPosition(Vector2Int gridPosition)
+    {
+        return _gridRoot.TransformPoint(GridToWorld(gridPosition));
+    }
+
+    public bool TryWorldToGridPosition(Vector3 worldPosition, out Vector2Int gridPosition)
+    {
+        gridPosition = default;
+
+        if (_gridRoot == null ||
+            Mathf.Approximately(_tileWidth, 0f) ||
+            Mathf.Approximately(_tileHeight, 0f))
+        {
+            return false;
+        }
+
+        var localPosition = _gridRoot.InverseTransformPoint(worldPosition);
+        var gridX = localPosition.x / _tileWidth + localPosition.y / _tileHeight;
+        var gridY = localPosition.y / _tileHeight - localPosition.x / _tileWidth;
+        var nearestPosition = new Vector2Int(
+            Mathf.RoundToInt(gridX),
+            Mathf.RoundToInt(gridY));
+
+        if (!IsValidPosition(nearestPosition))
+        {
+            return false;
+        }
+
+        gridPosition = nearestPosition;
+        return true;
+    }
+
+    public NpcObj CreateNpc(Vector2Int gridPosition)
+    {
+        if (_npcObjPrefab == null || !IsWalkable(gridPosition))
+        {
+            return null;
+        }
+
+        var npc = Lean.Pool.LeanPool.Spawn(_npcObjPrefab, _gridRoot);
+        npc.transform.localPosition = GridToWorld(gridPosition);
+        npc.transform.localRotation = Quaternion.identity;
+        npc.Initialize(gridPosition);
+        return npc;
     }
 
     public FloorTileObj GetFloorView(Vector2Int position)

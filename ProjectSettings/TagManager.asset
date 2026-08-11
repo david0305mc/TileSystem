@@ -12,7 +12,7 @@ TagManager:
   - Water
   - UI
   - Furniture
-  - 
+  - NPC
   - 
   - 
   - 
@@ -40,6 +40,12 @@ TagManager:
   m_SortingLayers:
   - name: Default
     uniqueID: 0
+    locked: 0
+  - name: Ground
+    uniqueID: 3457945799
+    locked: 0
+  - name: World
+    uniqueID: 3181853473
     locked: 0
   m_RenderingLayers:
   - Default
