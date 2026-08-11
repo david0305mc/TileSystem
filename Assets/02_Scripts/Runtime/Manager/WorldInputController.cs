@@ -4,127 +4,166 @@ using UnityEngine.InputSystem;
 
 public class WorldInputController : MonoBehaviour
 {
-    [SerializeField] private LayerMask _InteractableLayer;
+    [Header("References")]
     [SerializeField] private CameraController _cameraController;
-    [SerializeField] float _dragThresHold = 3f;
 
-    private bool _isDragging;
+    [Header("Interaction")]
+    [SerializeField] private LayerMask _interactableLayer;
+    [SerializeField] private float _dragThreshold = 3f;
+
+    private bool _isPointerDown;
     private bool _isDraggingObject;
-    private Vector2 _pointDownPosition;
-    private IPointerInteractable _pressedObj;
 
-    void Update()
+    private Vector2 _pointerDownPosition;
+    private IPointerInteractable _pressedObject;
+
+    private Camera WorldCamera => _cameraController.Camera;
+
+    private void Update()
     {
-
 #if UNITY_EDITOR
-        Mouse mouse = Mouse.current;
-
-        HandleMouseDrag();
+        HandleMouseInput();
 #endif
-        // _cameraController.HandleMouseDrag();
-        // _cameraController.HandleMouseZoom();
-
-    }
-    private bool IsPointerOverUI()
-    {
-        return EventSystem.current != null && EventSystem.current.IsPointerOverGameObject();
     }
 
-    private void HandleMouseDrag()
+    private void HandleMouseInput()
     {
-        Mouse mouse = Mouse.current;
-        Vector2 mousePosition = mouse.position.ReadValue();
+        var mouse = Mouse.current;
+
+        if (mouse == null)
+            return;
+
+        Vector2 position = mouse.position.ReadValue();
+
         if (mouse.leftButton.wasPressedThisFrame)
         {
-            if (IsPointerOverUI())
+            HandlePointerDown(position);
+            return;
+        }
+
+        if (mouse.leftButton.wasReleasedThisFrame)
+        {
+            HandlePointerUp();
+            return;
+        }
+
+        if (mouse.leftButton.isPressed)
+        {
+            HandlePointerMove(position);
+        }
+    }
+
+    private void HandlePointerDown(Vector2 screenPosition)
+    {
+        if (_isPointerDown)
+            return;
+
+        if (IsPointerOverUI())
+            return;
+
+        _isPointerDown = true;
+        _isDraggingObject = false;
+        _pointerDownPosition = screenPosition;
+
+        _pressedObject = FindInteractableObject(screenPosition);
+
+        if (_pressedObject != null)
+        {
+            Vector2 worldPosition = ScreenToWorldPosition(screenPosition);
+            _pressedObject.OnPointerDown(worldPosition);
+        }
+        else
+        {
+            _cameraController.BeginDrag(screenPosition);
+        }
+    }
+
+    private void HandlePointerMove(Vector2 screenPosition)
+    {
+        if (!_isPointerDown)
+            return;
+
+        if (_pressedObject != null)
+        {
+            HandleObjectDrag(screenPosition);
+        }
+        else
+        {
+            _cameraController.UpdateDrag(screenPosition);
+        }
+    }
+
+    private void HandleObjectDrag(Vector2 screenPosition)
+    {
+        if (!_isDraggingObject)
+        {
+            if (!HasExceededDragThreshold(screenPosition))
                 return;
 
-            HandleDragBegin(mousePosition);
+            _isDraggingObject = true;
         }
-        else if (mouse.leftButton.isPressed)
-        {
-            HandleDragUpdate(mousePosition);
-        }
-        else if (mouse.leftButton.wasReleasedThisFrame)
-        {
-            HandleDragEnd();
-        }
+
+        Vector2 worldPosition = ScreenToWorldPosition(screenPosition);
+        _pressedObject.OnPointerDrag(worldPosition);
     }
 
-    private void HandleDragBegin(Vector2 point)
+    private void HandlePointerUp()
     {
-        if (_isDragging)
-            return;
-        _pointDownPosition = point;
-        _isDragging = true;
-        var interactableObj = FindInteractableObj(point);
-        if (interactableObj != null)
-        {
-            var worldPos = _cameraController.Camera.ScreenToWorldPoint(point);
-            _pressedObj = interactableObj;
-            _pressedObj.OnPointerDown(worldPos);
-        }
-        else
-        {
-            _cameraController.BeginDrag(point);
-        }
-    }
-
-    private void HandleDragUpdate(Vector2 point)
-    {
-        if (!_isDragging)
+        if (!_isPointerDown)
             return;
 
-        if (_pressedObj != null)
+        if (_pressedObject != null)
         {
-            if (!_isDraggingObject && HasExceededDragThresHold(point))
-            {
-                _isDraggingObject = true;
-            }
-            else
-            {
-                var worldPos = _cameraController.Camera.ScreenToWorldPoint(point);
-                _pressedObj.OnPointerDrag(worldPos);
-            }
-        }
-        else
-        {
-            _cameraController.UpdateDrag(point);
-        }
-    }
-
-    private void HandleDragEnd()
-    {
-        if (!_isDragging)
-            return;
-
-        if (_isDraggingObject)
-        {
-            _pressedObj.OnPointerUp();
+            // 클릭이든 드래그든 PointerDown 된 객체가 PointerUp도 받도록 함.
+            _pressedObject.OnPointerUp();
         }
         else
         {
             _cameraController.EndDrag();
         }
-        _isDragging = false;
+
+        ResetPointerState();
+    }
+
+    private void ResetPointerState()
+    {
+        _isPointerDown = false;
         _isDraggingObject = false;
-        _pressedObj = null;
+        _pressedObject = null;
     }
 
-    bool HasExceededDragThresHold(Vector2 point)
+    private bool HasExceededDragThreshold(Vector2 screenPosition)
     {
-        return Vector2.Distance(_pointDownPosition, point) >= _dragThresHold;
+        Vector2 delta = screenPosition - _pointerDownPosition;
+
+        // Distance()보다 sqrt 계산을 피할 수 있음.
+        return delta.sqrMagnitude >= _dragThreshold * _dragThreshold;
     }
-    IPointerInteractable FindInteractableObj(Vector2 point)
+
+    private IPointerInteractable FindInteractableObject(Vector2 screenPosition)
     {
-        var worldPos = _cameraController.Camera.ScreenToWorldPoint(point);
-        var hit = Physics2D.Raycast(worldPos, Vector2.zero, 0, _InteractableLayer);
-        if (hit.collider == null)
-        {
+        Vector2 worldPosition = ScreenToWorldPosition(screenPosition);
+
+        Collider2D collider = Physics2D.OverlapPoint(
+            worldPosition,
+            _interactableLayer
+        );
+
+        if (collider == null)
             return null;
-        }
-        hit.collider.gameObject.TryGetComponent(out IPointerInteractable interactableObj);
-        return interactableObj;
+
+        collider.TryGetComponent(out IPointerInteractable interactable);
+        return interactable;
     }
 
+    private Vector2 ScreenToWorldPosition(Vector2 screenPosition)
+    {
+        return WorldCamera.ScreenToWorldPoint(screenPosition);
+    }
+
+    private static bool IsPointerOverUI()
+    {
+        return EventSystem.current != null &&
+               EventSystem.current.IsPointerOverGameObject();
+    }
 }
