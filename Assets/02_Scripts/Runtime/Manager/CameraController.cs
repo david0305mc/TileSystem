@@ -45,6 +45,8 @@ public class CameraController : MonoBehaviour
     {
         targetCamera = Camera.main;
 
+        targetCamera.transparencySortMode = TransparencySortMode.CustomAxis;
+        targetCamera.transparencySortAxis = new Vector3(0f, 1f, 0f);
         if (targetCamera == null)
         {
             Debug.LogError(
@@ -69,12 +71,12 @@ public class CameraController : MonoBehaviour
             return;
         }
 
-// #if UNITY_EDITOR || UNITY_STANDALONE
-//         HandleMouseDrag();
-//         HandleMouseZoom();
-// #endif
+        // #if UNITY_EDITOR || UNITY_STANDALONE
+        //         HandleMouseDrag();
+        //         HandleMouseZoom();
+        // #endif
 
-//         HandleTouchInput();
+        //         HandleTouchInput();
         HandleInertia();
     }
 
@@ -165,34 +167,34 @@ public class CameraController : MonoBehaviour
         switch (touch.phase)
         {
             case TouchPhase.Began:
-            {
-                if (IsPointerOverUI(touch.touchId))
                 {
-                    isDragging = false;
-                    return;
-                }
+                    if (IsPointerOverUI(touch.touchId))
+                    {
+                        isDragging = false;
+                        return;
+                    }
 
-                BeginDrag(touch.screenPosition);
-                break;
-            }
+                    BeginDrag(touch.screenPosition);
+                    break;
+                }
 
             case TouchPhase.Moved:
-            {
-                if (!isDragging)
                 {
-                    return;
-                }
+                    if (!isDragging)
+                    {
+                        return;
+                    }
 
-                UpdateDrag(touch.screenPosition);
-                break;
-            }
+                    UpdateDrag(touch.screenPosition);
+                    break;
+                }
 
             case TouchPhase.Ended:
             case TouchPhase.Canceled:
-            {
-                EndDrag();
-                break;
-            }
+                {
+                    EndDrag();
+                    break;
+                }
         }
     }
 
