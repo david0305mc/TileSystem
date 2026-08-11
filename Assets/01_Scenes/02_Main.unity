@@ -855,8 +855,9 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::WorldInputController
   _InteractableLayer:
     serializedVersion: 2
-    m_Bits: 4294967295
+    m_Bits: 64
   _cameraController: {fileID: 961739754}
+  _dragThresHold: 3
 --- !u!1 &1295494969
 GameObject:
   m_ObjectHideFlags: 0

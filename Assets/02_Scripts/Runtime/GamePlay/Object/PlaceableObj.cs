@@ -14,7 +14,7 @@ public class PlaceableObj : MonoBehaviour, IPointerInteractable
 
     public void OnPointerDrag(Vector2 worldPosition)
     {
-        
+        transform.position = worldPosition;
     }
 
     public void OnPointerUp()

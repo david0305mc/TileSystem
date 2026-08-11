@@ -6,9 +6,11 @@ public class WorldInputController : MonoBehaviour
 {
     [SerializeField] private LayerMask _InteractableLayer;
     [SerializeField] private CameraController _cameraController;
+    [SerializeField] float _dragThresHold = 3f;
 
     private bool _isDragging;
     private bool _isDraggingObject;
+    private Vector2 _pointDownPosition;
     private IPointerInteractable _pressedObj;
 
     void Update()
@@ -53,12 +55,12 @@ public class WorldInputController : MonoBehaviour
     {
         if (_isDragging)
             return;
+        _pointDownPosition = point;
         _isDragging = true;
         var interactableObj = FindInteractableObj(point);
         if (interactableObj != null)
         {
             var worldPos = _cameraController.Camera.ScreenToWorldPoint(point);
-            _isDraggingObject = true;
             _pressedObj = interactableObj;
             _pressedObj.OnPointerDown(worldPos);
         }
@@ -73,10 +75,17 @@ public class WorldInputController : MonoBehaviour
         if (!_isDragging)
             return;
 
-        if (_isDraggingObject)
+        if (_pressedObj != null)
         {
-            var worldPos = _cameraController.Camera.ScreenToWorldPoint(point);
-            _pressedObj.OnPointerDrag(worldPos);
+            if (!_isDraggingObject && HasExceededDragThresHold(point))
+            {
+                _isDraggingObject = true;
+            }
+            else
+            {
+                var worldPos = _cameraController.Camera.ScreenToWorldPoint(point);
+                _pressedObj.OnPointerDrag(worldPos);
+            }
         }
         else
         {
@@ -102,7 +111,10 @@ public class WorldInputController : MonoBehaviour
         _pressedObj = null;
     }
 
-
+    bool HasExceededDragThresHold(Vector2 point)
+    {
+        return Vector2.Distance(_pointDownPosition, point) >= _dragThresHold;
+    }
     IPointerInteractable FindInteractableObj(Vector2 point)
     {
         var worldPos = _cameraController.Camera.ScreenToWorldPoint(point);
