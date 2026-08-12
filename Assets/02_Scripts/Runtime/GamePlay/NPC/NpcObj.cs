@@ -1,4 +1,7 @@
 using System.Collections.Generic;
+using System.Threading;
+using Cysharp.Threading.Tasks;
+using R3;
 using UnityEngine;
 using UnityHFSM;
 
@@ -29,67 +32,60 @@ public class NpcObj : MonoBehaviour
         {
             transform.position = GridManager.Instance.GridToWorldPosition(gridPosition);
         }
-    }
-    void Start()
-    {
-
         InitializeFsm();
     }
+
     private void InitializeFsm()
     {
+        _fsm?.OnExit();
         _fsm = new StateMachine();
+
         string waitingState = nameof(NpcState.WAITING);
         string movingState = nameof(NpcState.MOVING);
-        _fsm.AddState(waitingState, new State(onLogic: state =>
-        {
-            Debug.Log($"waitingState {state}");
-        }));
-        _fsm.AddState(movingState, new State(onLogic: state =>
-        {
-            Debug.Log($"movingState {state}");
-        }));
+
+        _fsm.AddState(waitingState, new UniTaskState(onEnterAsync: WaitStateAsync));
+        _fsm.AddState(movingState, new UniTaskState(onEnterAsync: MovingStateAsync));
         _fsm.SetStartState(waitingState);
         _fsm.Init();
     }
 
-    /// <summary>
-    /// A* 경로를 찾아 지정한 그리드 셀까지 이동을 시작합니다.
-    /// </summary>
-    public bool MoveTo(Vector2Int targetGridPosition)
+    private async UniTask WaitStateAsync(CancellationToken cancellationToken)
     {
-        if (!GridManager.HasInstance)
-        {
-            return false;
-        }
-
-        var gridManager = GridManager.Instance;
-        if (!gridManager.TryWorldToGridPosition(transform.position, out var startGridPosition) ||
-            !gridManager.TryFindPath(startGridPosition, targetGridPosition, out var gridPath))
-        {
-            Stop();
-            return false;
-        }
-
-        _worldPath = new List<Vector3>(gridPath.Count);
-        foreach (var gridPosition in gridPath)
-        {
-            _worldPath.Add(gridManager.GridToWorldPosition(gridPosition));
-        }
-
-        CurrentGridPosition = startGridPosition;
-        _pathIndex = 0;
-        return true;
+        await UniTask.WaitForSeconds(2f, cancellationToken: cancellationToken);
+        MoveRandomTarget();
     }
 
-    public bool MoveTo(Vector3 targetWorldPosition)
+    private async UniTask MovingStateAsync(CancellationToken cancellationToken)
     {
-        if (!GridManager.HasInstance ||
-            !GridManager.Instance.TryWorldToGridPosition(targetWorldPosition, out var targetGridPosition))
+        _pathIndex = 0;
+        while (_pathIndex < _worldPath.Count)
         {
-            return false;
+            var targetPos = _worldPath[_pathIndex];
+            while (Vector2.Distance(transform.position, targetPos) > 0.1f)
+            {
+                transform.position = Vector2.MoveTowards(transform.position, targetPos, _moveSpeed * Time.deltaTime);
+                await UniTask.Yield(PlayerLoopTiming.Update, cancellationToken: cancellationToken);
+            }
+            transform.position = targetPos;
+            _pathIndex++;
         }
+        _fsm.RequestStateChange(nameof(NpcState.WAITING));
+    }
 
-        return MoveTo(targetGridPosition);
+    private void MoveRandomTarget()
+    {
+        var gridManager = GridManager.Instance;
+        var randomGridPos = gridManager.GetRandomGridPos();
+        var randomWorldPos = gridManager.GridToWorldPosition(randomGridPos);
+        if (gridManager.TryFindWorldPath(transform.position, randomWorldPos, out var worldPath))
+        {
+            _worldPath = worldPath;
+            _fsm.RequestStateChange(nameof(NpcState.MOVING));
+        }
+        else
+        {
+            _fsm.RequestStateChange(nameof(NpcState.WAITING));
+        }
     }
 
     public void Stop()
@@ -105,42 +101,7 @@ public class NpcObj : MonoBehaviour
 
     private void Update()
     {
-        if (_fsm == null)
-        {
-            return;
-        }
-
-        _fsm.OnLogic();
-        if (!IsMoving)
-        {
-            return;
-        }
-
-        var targetPosition = _worldPath[_pathIndex];
-        transform.position = Vector3.MoveTowards(
-            transform.position,
-            targetPosition,
-            _moveSpeed * Time.deltaTime);
-
-        if ((transform.position - targetPosition).sqrMagnitude >
-            _arrivalDistance * _arrivalDistance)
-        {
-            return;
-        }
-
-        transform.position = targetPosition;
-
-        if (GridManager.HasInstance &&
-            GridManager.Instance.TryWorldToGridPosition(targetPosition, out var gridPosition))
-        {
-            CurrentGridPosition = gridPosition;
-        }
-
-        _pathIndex++;
-        if (_pathIndex >= _worldPath.Count)
-        {
-            Stop();
-        }
+        _fsm?.OnLogic();
     }
 
     private void OnDrawGizmosSelected()

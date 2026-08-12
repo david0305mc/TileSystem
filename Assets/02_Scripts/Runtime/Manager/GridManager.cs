@@ -83,13 +83,13 @@ public class GridManager : SingletonMono<GridManager>
             }
 
             var npcObj = CreateNpc(gridPosition);
-            npcObj.MoveTo(GetRandomGridPos());
+            // npcObj.MoveTo(GetRandomGridPos());
 
             createdCount++;
         }
     }
 
-    Vector2Int GetRandomGridPos()
+    public Vector2Int GetRandomGridPos()
     {
         var attemptCount = 0;
         var createdCount = 0;
