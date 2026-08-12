@@ -1,13 +1,21 @@
 using System.Collections.Generic;
 using UnityEngine;
+using UnityHFSM;
 
 public class NpcObj : MonoBehaviour
 {
+    public enum NpcState
+    {
+        WAITING,
+        MOVING,
+    }
+
     [SerializeField, Min(0.1f)] private float _moveSpeed = 2f;
     [SerializeField, Min(0.001f)] private float _arrivalDistance = 0.02f;
 
     private List<Vector3> _worldPath;
     private int _pathIndex;
+    private StateMachine _fsm;
 
     public Vector2Int CurrentGridPosition { get; private set; }
     public bool IsMoving => _worldPath != null && _pathIndex < _worldPath.Count;
@@ -21,6 +29,27 @@ public class NpcObj : MonoBehaviour
         {
             transform.position = GridManager.Instance.GridToWorldPosition(gridPosition);
         }
+    }
+    void Start()
+    {
+
+        InitializeFsm();
+    }
+    private void InitializeFsm()
+    {
+        _fsm = new StateMachine();
+        string waitingState = nameof(NpcState.WAITING);
+        string movingState = nameof(NpcState.MOVING);
+        _fsm.AddState(waitingState, new State(onLogic: state =>
+        {
+            Debug.Log($"waitingState {state}");
+        }));
+        _fsm.AddState(movingState, new State(onLogic: state =>
+        {
+            Debug.Log($"movingState {state}");
+        }));
+        _fsm.SetStartState(waitingState);
+        _fsm.Init();
     }
 
     /// <summary>
@@ -68,9 +97,20 @@ public class NpcObj : MonoBehaviour
         _worldPath = null;
         _pathIndex = 0;
     }
+    void OnDestroy()
+    {
+        _fsm?.OnExit();
+        _fsm = null;
+    }
 
     private void Update()
     {
+        if (_fsm == null)
+        {
+            return;
+        }
+
+        _fsm.OnLogic();
         if (!IsMoving)
         {
             return;
