@@ -1,7 +1,6 @@
 using System.Collections.Generic;
 using System.Threading;
 using Cysharp.Threading.Tasks;
-using R3;
 using UnityEngine;
 using UnityHFSM;
 
@@ -13,90 +12,188 @@ public class NpcObj : MonoBehaviour
         MOVING,
     }
 
-    [SerializeField, Min(0.1f)] private float _moveSpeed = 2f;
-    [SerializeField, Min(0.001f)] private float _arrivalDistance = 0.02f;
+    private static readonly string WaitingState = nameof(NpcState.WAITING);
+    private static readonly string MovingState = nameof(NpcState.MOVING);
 
-    private List<Vector3> _worldPath;
-    private int _pathIndex;
+    [Header("Movement")]
+    [SerializeField, Min(0.1f)]
+    private float _moveSpeed = 2f;
+
+    [SerializeField, Min(0.001f)]
+    private float _arrivalDistance = 0.02f;
+
+    [Header("Behaviour")]
+    [SerializeField, Min(0f)]
+    private float _waitDuration = 2f;
+
+    private readonly List<Vector3> _worldPath = new();
+
     private StateMachine _fsm;
 
+    private int _pathIndex;
+    private Vector2Int _targetGridPosition;
+
     public Vector2Int CurrentGridPosition { get; private set; }
-    public bool IsMoving => _worldPath != null && _pathIndex < _worldPath.Count;
+
+    public bool IsMoving =>
+        _fsm != null &&
+        _fsm.ActiveStateName == MovingState;
 
     public void Initialize(Vector2Int gridPosition)
     {
         Stop();
+
         CurrentGridPosition = gridPosition;
+        _targetGridPosition = gridPosition;
 
         if (GridManager.HasInstance)
         {
-            transform.position = GridManager.Instance.GridToWorldPosition(gridPosition);
+            transform.position =
+                GridManager.Instance.GridToWorldPosition(gridPosition);
         }
+
         InitializeFsm();
     }
 
     private void InitializeFsm()
     {
         _fsm?.OnExit();
+
         _fsm = new StateMachine();
 
-        string waitingState = nameof(NpcState.WAITING);
-        string movingState = nameof(NpcState.MOVING);
+        _fsm.AddState(
+            WaitingState,
+            new UniTaskState(onEnterAsync: WaitingStateAsync));
 
-        _fsm.AddState(waitingState, new UniTaskState(onEnterAsync: WaitStateAsync));
-        _fsm.AddState(movingState, new UniTaskState(onEnterAsync: MovingStateAsync));
-        _fsm.SetStartState(waitingState);
+        _fsm.AddState(
+            MovingState,
+            new UniTaskState(onEnterAsync: MovingStateAsync));
+
+        _fsm.SetStartState(WaitingState);
         _fsm.Init();
     }
 
-    private async UniTask WaitStateAsync(CancellationToken cancellationToken)
+    private async UniTask WaitingStateAsync(
+        CancellationToken cancellationToken)
     {
-        await UniTask.WaitForSeconds(2f, cancellationToken: cancellationToken);
-        MoveRandomTarget();
+        await UniTask.WaitForSeconds(
+            _waitDuration,
+            cancellationToken: cancellationToken);
+
+        if (cancellationToken.IsCancellationRequested)
+        {
+            return;
+        }
+
+        TryMoveToRandomTarget();
     }
 
-    private async UniTask MovingStateAsync(CancellationToken cancellationToken)
+    private async UniTask MovingStateAsync(
+        CancellationToken cancellationToken)
     {
+        if (_worldPath.Count == 0)
+        {
+            RequestWaitingState();
+            return;
+        }
+
         _pathIndex = 0;
+
+        float arrivalDistanceSqr =
+            _arrivalDistance * _arrivalDistance;
+
         while (_pathIndex < _worldPath.Count)
         {
-            var targetPos = _worldPath[_pathIndex];
-            while (Vector2.Distance(transform.position, targetPos) > 0.1f)
+            Vector3 targetPosition = _worldPath[_pathIndex];
+
+            while (
+                (transform.position - targetPosition).sqrMagnitude
+                > arrivalDistanceSqr)
             {
-                transform.position = Vector2.MoveTowards(transform.position, targetPos, _moveSpeed * Time.deltaTime);
-                await UniTask.Yield(PlayerLoopTiming.Update, cancellationToken: cancellationToken);
+                transform.position = Vector3.MoveTowards(
+                    transform.position,
+                    targetPosition,
+                    _moveSpeed * Time.deltaTime);
+
+                await UniTask.Yield(
+                    PlayerLoopTiming.Update,
+                    cancellationToken);
             }
-            transform.position = targetPos;
+
+            transform.position = targetPosition;
             _pathIndex++;
         }
-        _fsm.RequestStateChange(nameof(NpcState.WAITING));
+
+        OnMoveCompleted();
     }
 
-    private void MoveRandomTarget()
+    private void TryMoveToRandomTarget()
     {
-        var gridManager = GridManager.Instance;
-        var randomGridPos = gridManager.GetRandomGridPos();
-        var randomWorldPos = gridManager.GridToWorldPosition(randomGridPos);
-        if (gridManager.TryFindWorldPath(transform.position, randomWorldPos, out var worldPath))
+        if (!GridManager.HasInstance)
         {
-            _worldPath = worldPath;
-            _fsm.RequestStateChange(nameof(NpcState.MOVING));
+            RequestWaitingState();
+            return;
         }
-        else
+
+        GridManager gridManager = GridManager.Instance;
+
+        Vector2Int targetGridPosition =
+            gridManager.GetRandomGridPos();
+
+        // 현재 위치와 동일한 위치라면 다시 대기
+        if (targetGridPosition == CurrentGridPosition)
         {
-            _fsm.RequestStateChange(nameof(NpcState.WAITING));
+            RequestWaitingState();
+            return;
         }
+
+        Vector3 targetWorldPosition =
+            gridManager.GridToWorldPosition(targetGridPosition);
+
+        if (!gridManager.TryFindWorldPath(
+                transform.position,
+                targetWorldPosition,
+                out var path) ||
+            path == null ||
+            path.Count == 0)
+        {
+            RequestWaitingState();
+            return;
+        }
+
+        _worldPath.Clear();
+        _worldPath.AddRange(path);
+
+        _targetGridPosition = targetGridPosition;
+        _pathIndex = 0;
+
+        _fsm.RequestStateChange(MovingState);
+    }
+
+    private void OnMoveCompleted()
+    {
+        CurrentGridPosition = _targetGridPosition;
+
+        _worldPath.Clear();
+        _pathIndex = 0;
+
+        RequestWaitingState();
+    }
+
+    private void RequestWaitingState()
+    {
+        _fsm?.RequestStateChange(WaitingState);
     }
 
     public void Stop()
     {
-        _worldPath = null;
+        _worldPath.Clear();
         _pathIndex = 0;
-    }
-    void OnDestroy()
-    {
-        _fsm?.OnExit();
-        _fsm = null;
+
+        if (_fsm != null)
+        {
+            _fsm.RequestStateChange(WaitingState);
+        }
     }
 
     private void Update()
@@ -104,20 +201,35 @@ public class NpcObj : MonoBehaviour
         _fsm?.OnLogic();
     }
 
+    private void OnDestroy()
+    {
+        _fsm?.OnExit();
+        _fsm = null;
+    }
+
+#if UNITY_EDITOR
     private void OnDrawGizmosSelected()
     {
-        if (_worldPath == null || _pathIndex >= _worldPath.Count)
+        if (_worldPath.Count == 0 ||
+            _pathIndex >= _worldPath.Count)
         {
             return;
         }
 
         Gizmos.color = Color.cyan;
-        var previousPosition = transform.position;
+
+        Vector3 previousPosition = transform.position;
 
         for (int i = _pathIndex; i < _worldPath.Count; i++)
         {
-            Gizmos.DrawLine(previousPosition, _worldPath[i]);
-            previousPosition = _worldPath[i];
+            Vector3 targetPosition = _worldPath[i];
+
+            Gizmos.DrawLine(
+                previousPosition,
+                targetPosition);
+
+            previousPosition = targetPosition;
         }
     }
+#endif
 }
