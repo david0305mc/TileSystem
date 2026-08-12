@@ -6,10 +6,15 @@ using UnityEngine;
 public class UniTaskState : UnityHFSM.State
 {
     private readonly Func<CancellationToken, UniTask> onEnterAsync;
+    private readonly Func<UnityHFSM.State, bool> canExit;
     private readonly Action<Exception> onException;
     private readonly CancellationToken externalCancellationToken;
     private CancellationTokenSource cts;
 
+    /// <summary>
+    /// The most recently started enter task has not completed yet.
+    /// Cancellation is cooperative, so this remains true until the task actually finishes.
+    /// </summary>
     public bool IsRunning => cts != null;
 
     public UniTaskState(
@@ -24,12 +29,13 @@ public class UniTaskState : UnityHFSM.State
     ) : base(
         onLogic: onLogic == null ? null : state => onLogic((UnityHFSM.State)state),
         onExit: onExit == null ? null : state => onExit((UnityHFSM.State)state),
-        canExit: canExit == null ? null : state => canExit((UnityHFSM.State)state),
+        canExit: state => ((UniTaskState)state).CanExit(),
         needsExitTime: needsExitTime,
         isGhostState: isGhostState
     )
     {
         this.onEnterAsync = onEnterAsync;
+        this.canExit = canExit;
         this.onException = onException;
         this.externalCancellationToken = externalCancellationToken;
     }
@@ -60,10 +66,12 @@ public class UniTaskState : UnityHFSM.State
             return;
         }
 
-        cts = externalCancellationToken.CanBeCanceled
+        var source = externalCancellationToken.CanBeCanceled
             ? CancellationTokenSource.CreateLinkedTokenSource(externalCancellationToken)
             : new CancellationTokenSource();
-        RunOnEnterAsync(cts, cts.Token).Forget();
+
+        cts = source;
+        RunOnEnterAsync(source, source.Token).Forget();
     }
 
     private void CancelOnEnterAsync()
@@ -73,8 +81,6 @@ public class UniTaskState : UnityHFSM.State
         {
             return;
         }
-
-        cts = null;
 
         try
         {
@@ -87,6 +93,11 @@ public class UniTaskState : UnityHFSM.State
         {
             HandleException(ex);
         }
+    }
+
+    private bool CanExit()
+    {
+        return !IsRunning && (canExit == null || canExit(this));
     }
 
     private async UniTask RunOnEnterAsync(CancellationTokenSource source, CancellationToken token)
@@ -128,6 +139,7 @@ public class UniTaskState : UnityHFSM.State
         }
         catch (Exception handlerException)
         {
+            Debug.LogException(ex);
             Debug.LogException(handlerException);
         }
     }
