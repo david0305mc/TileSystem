@@ -71,7 +71,7 @@ public class GridManager : SingletonMono<GridManager>
     {
         var attemptCount = 0;
         var createdCount = 0;
-        while (createdCount < 1 && attemptCount++ < 100)
+        while (createdCount < 10 && attemptCount++ < 100)
         {
             int x = Random.Range(0, GameDefine.GridWidth);
             int y = Random.Range(0, GameDefine.GridHeight);
