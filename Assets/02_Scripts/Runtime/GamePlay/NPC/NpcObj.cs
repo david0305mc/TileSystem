@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using System.Threading;
 using Cysharp.Threading.Tasks;
+using Spine.Unity;
 using UnityEngine;
 using UnityHFSM;
 
@@ -14,6 +15,9 @@ public class NpcObj : MonoBehaviour
 
     private static readonly string WaitingState = nameof(NpcState.WAITING);
     private static readonly string MovingState = nameof(NpcState.MOVING);
+
+
+    [SerializeField] private SkeletonAnimation skeletonAnimation;
 
     [Header("Movement")]
     [SerializeField, Min(0.1f)]
@@ -76,6 +80,7 @@ public class NpcObj : MonoBehaviour
     private async UniTask WaitingStateAsync(
         CancellationToken cancellationToken)
     {
+        skeletonAnimation.AnimationName = "idle";
         await UniTask.WaitForSeconds(
             _waitDuration,
             cancellationToken: cancellationToken);
@@ -98,7 +103,7 @@ public class NpcObj : MonoBehaviour
         }
 
         _pathIndex = 0;
-
+        skeletonAnimation.AnimationName = "walk";
         float arrivalDistanceSqr =
             _arrivalDistance * _arrivalDistance;
 
@@ -106,18 +111,16 @@ public class NpcObj : MonoBehaviour
         {
             Vector3 targetPosition = _worldPath[_pathIndex];
 
-            while (
-                (transform.position - targetPosition).sqrMagnitude
-                > arrivalDistanceSqr)
+            while ((transform.position - targetPosition).sqrMagnitude > arrivalDistanceSqr)
             {
+                bool isLeftDir = (transform.position.x - targetPosition.x) > 0;
+                SetFlip(isLeftDir);
                 transform.position = Vector3.MoveTowards(
                     transform.position,
                     targetPosition,
                     _moveSpeed * Time.deltaTime);
 
-                await UniTask.Yield(
-                    PlayerLoopTiming.Update,
-                    cancellationToken);
+                await UniTask.Yield(PlayerLoopTiming.Update, cancellationToken);
             }
 
             transform.position = targetPosition;
@@ -125,6 +128,10 @@ public class NpcObj : MonoBehaviour
         }
 
         OnMoveCompleted();
+    }
+    private void SetFlip(bool isLeft)
+    {
+        skeletonAnimation.Skeleton.ScaleX = isLeft ? -1f : 1f;
     }
 
     private void TryMoveToRandomTarget()

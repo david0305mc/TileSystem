@@ -393,9 +393,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 3f95f27158cf46c4dba57db2ad27c806, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::NpcObj
+  skeletonAnimation: {fileID: 7803886669788622327}
   _moveSpeed: 2
   _arrivalDistance: 0.02
-  _waitDuration: 10
+  _waitDuration: 2
 --- !u!1 &6449433289879481089
 GameObject:
   m_ObjectHideFlags: 0
