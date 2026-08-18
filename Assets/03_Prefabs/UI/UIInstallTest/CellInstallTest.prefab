@@ -304,7 +304,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::CellInstallTest
   button: {fileID: 8320490595779196594}
-  titleText: {fileID: 1351377867023621339}
+  titleText: {fileID: 7978752701266924097}
+  objectImage: {fileID: 1019455409041377800}
 --- !u!1 &4903163903853843342
 GameObject:
   m_ObjectHideFlags: 0

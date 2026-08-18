@@ -7,12 +7,17 @@ public class CellInstallTest : MonoBehaviour
 {
     [SerializeField] private Button button;
     [SerializeField] private TextMeshProUGUI titleText;
+    [SerializeField] private Image objectImage;
 
-    public void Bind(int index, System.Action<int> buttonCallback)
+
+    public void Bind(int id, System.Action<int> buttonCallback)
     {
-        titleText.SetText($"{index}");
+        var furniture = DataManager.Instance.GetFurnitureData(id);
+        titleText.SetText(furniture.namekey);
+        objectImage.sprite = ResourceManager.Instance.GetSpriteFromAtlas(furniture.spritepath);
+        
         button.onClick.RemoveAllListeners();
-        button.onClick.AddListener(()=> { buttonCallback?.Invoke(index); });
+        button.onClick.AddListener(()=> { buttonCallback?.Invoke(id); });
     }
 
 }

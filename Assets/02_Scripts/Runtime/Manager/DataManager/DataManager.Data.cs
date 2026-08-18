@@ -12,7 +12,7 @@ public partial class DataManager : Singleton<DataManager> {
 		public int id;
 		public string namekey;
 		public string furnituretype;
-		public string prefabkey;
+		public string spritepath;
 		public int sizex;
 		public int sizey;
 		public int price;
