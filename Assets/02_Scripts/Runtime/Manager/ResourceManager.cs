@@ -1,16 +1,13 @@
+using Spine;
 using UnityEngine;
+using UnityEngine.U2D;
 
-public class ResourceManager : MonoBehaviour
+public class ResourceManager : SingletonMono<ResourceManager>
 {
-    // Start is called once before the first execution of Update after the MonoBehaviour is created
-    void Start()
-    {
-        
-    }
+    [SerializeField] private SpriteAtlas spriteAtlas;
 
-    // Update is called once per frame
-    void Update()
+    public Sprite GetSpriteFromAtlas(string name)
     {
-        
+        return spriteAtlas.GetSprite(name);
     }
 }

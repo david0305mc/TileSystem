@@ -1,6 +1,6 @@
 using UnityEngine;
 using UnityEngine.UI;
-
+using R3;
 public class UIMain : MonoBehaviour
 {
     [SerializeField] private Button button;
@@ -9,8 +9,9 @@ public class UIMain : MonoBehaviour
     {
         button.onClick.AddListener(() =>
         {
-            UserDataManager.Instance.AddGold(1);
+            // UserDataManager.Instance.AddGold(1);
 
+            PopupManager.Instance.ShowPopup<ObjectInstallTestPopup, Unit>();
         });
     }
 }

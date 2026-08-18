@@ -867,6 +867,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 783d5cec8b32d214cbbca65fbb763835, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::ResourceManager
+  spriteAtlas: {fileID: 100100200, guid: 8c36f250a08cff747b78c837c3ed0fbd, type: 3}
 --- !u!1 &1659032369
 GameObject:
   m_ObjectHideFlags: 0

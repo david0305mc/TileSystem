@@ -3,12 +3,18 @@ using UnityEngine;
 public class PlaceableObj : MonoBehaviour, IPointerInteractable
 {
     [SerializeField, Min(0f)] private float _snapDistance = 0.5f;
+    
+    [SerializeField] private SpriteRenderer spriteRenderer;
 
     private Vector3 _positionBeforeDrag;
 
     public void OnClick()
     {
-        
+
+    }
+    public void Initialize()
+    {
+        spriteRenderer.sprite = ResourceManager.Instance.GetSpriteFromAtlas("2100000_01_1");
     }
 
     public void OnPointerDown(Vector2 worldPosition)
