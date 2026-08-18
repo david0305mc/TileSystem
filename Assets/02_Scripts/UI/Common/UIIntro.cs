@@ -11,8 +11,9 @@ public class UIIntro : MonoBehaviour
     {
         button.onClick.AddListener(async () =>
         {
-            GameManager.Instance.StartGame().Forget();
-            button.gameObject.SetActive(false);
+            // GameManager.Instance.StartGame().Forget();
+            // button.gameObject.SetActive(false);
+            PopupManager.Instance.ShowPopup<PopupOK, bool>();
         });
     }
 
