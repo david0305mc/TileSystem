@@ -609,6 +609,14 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 928521590}
     m_Modifications:
+    - target: {fileID: 1041822013236469466, guid: db3c33f23ea1e7d44ae9951590b101dc, type: 3}
+      propertyPath: m_VerticalScrollbar
+      value: 
+      objectReference: {fileID: 0}
+    - target: {fileID: 1041822013236469466, guid: db3c33f23ea1e7d44ae9951590b101dc, type: 3}
+      propertyPath: m_HorizontalScrollbar
+      value: 
+      objectReference: {fileID: 0}
     - target: {fileID: 3350058823116172302, guid: db3c33f23ea1e7d44ae9951590b101dc, type: 3}
       propertyPath: m_Name
       value: ObjectInstallTestPopup
