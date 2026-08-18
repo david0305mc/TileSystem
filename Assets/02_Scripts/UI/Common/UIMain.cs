@@ -1,12 +1,13 @@
 using UnityEngine;
 using UnityEngine.UI;
 using R3;
-public class UIMain : MonoBehaviour
+public class UIMain : SingletonMono<UIMain>
 {
     [SerializeField] private Button button;
 
-    void Awake()
+    protected override void Awake()
     {
+        base.Awake();
         button.onClick.AddListener(() =>
         {
             // UserDataManager.Instance.AddGold(1);
