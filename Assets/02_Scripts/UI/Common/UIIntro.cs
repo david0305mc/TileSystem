@@ -1,7 +1,8 @@
 using Cysharp.Threading.Tasks;
-using Unity.VisualScripting;
+
 using UnityEngine;
 using UnityEngine.UI;
+using R3;
 
 public class UIIntro : MonoBehaviour
 {
@@ -13,7 +14,7 @@ public class UIIntro : MonoBehaviour
         {
             // GameManager.Instance.StartGame().Forget();
             // button.gameObject.SetActive(false);
-            PopupManager.Instance.ShowPopup<PopupOK, bool>();
+            PopupManager.Instance.ShowPopup<ObjectInstallTestPopup, Unit>();
         });
     }
 
