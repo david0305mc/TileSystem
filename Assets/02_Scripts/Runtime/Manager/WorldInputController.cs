@@ -16,8 +16,14 @@ public class WorldInputController : MonoBehaviour
 
     private Vector2 _pointerDownPosition;
     private IPointerInteractable _pressedObject;
+    private float _dragVisualOffset = 100f;
 
     private Camera WorldCamera => _cameraController.Camera;
+
+    void Start()
+    {
+        _dragVisualOffset = Mathf.Clamp(Screen.height * 0.05f, 10f, 30f);
+    }
 
     private void Update()
     {
@@ -85,7 +91,7 @@ public class WorldInputController : MonoBehaviour
 
         if (_pressedObject != null)
         {
-            HandleObjectDrag(screenPosition);
+            HandleObjectDrag(screenPosition + Vector2.up * 100);
         }
         else
         {
@@ -103,7 +109,8 @@ public class WorldInputController : MonoBehaviour
             _isDraggingObject = true;
         }
 
-        Vector2 worldPosition = ScreenToWorldPosition(screenPosition);
+        Vector2 dragScreenPosition = screenPosition + Vector2.up * _dragVisualOffset;
+        Vector2 worldPosition = ScreenToWorldPosition(dragScreenPosition);
         _pressedObject.OnPointerDrag(worldPosition);
     }
 
