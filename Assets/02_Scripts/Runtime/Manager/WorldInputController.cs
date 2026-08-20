@@ -6,6 +6,7 @@ public class WorldInputController : MonoBehaviour
 {
     [Header("References")]
     [SerializeField] private CameraController _cameraController;
+    [SerializeField] private ItemPlacementUI _itemPlacementUI;
 
     [Header("Interaction")]
     [SerializeField] private LayerMask _interactableLayer;
@@ -23,6 +24,11 @@ public class WorldInputController : MonoBehaviour
     void Start()
     {
         _dragVisualOffset = Mathf.Clamp(Screen.height * 0.05f, 10f, 30f);
+
+        if (_itemPlacementUI == null)
+        {
+            _itemPlacementUI = FindFirstObjectByType<ItemPlacementUI>(FindObjectsInactive.Include);
+        }
     }
 
     private void Update()
@@ -77,6 +83,11 @@ public class WorldInputController : MonoBehaviour
         {
             Vector2 worldPosition = ScreenToWorldPosition(screenPosition);
             _pressedObject.OnPointerDown(worldPosition);
+
+            if (_pressedObject is Component pressedComponent)
+            {
+                _itemPlacementUI?.SetTarget(pressedComponent.transform, WorldCamera);
+            }
         }
         else
         {

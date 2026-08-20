@@ -131,6 +131,7 @@ GameObject:
   m_Component:
   - component: {fileID: 8827468055713281595}
   - component: {fileID: 183577453893339671}
+  - component: {fileID: 1617538324159024187}
   m_Layer: 5
   m_Name: ItemPlacementUI
   m_TagString: Untagged
@@ -166,6 +167,19 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 2496083577322982365}
   m_CullTransparentMesh: 1
+--- !u!114 &1617538324159024187
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2496083577322982365}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 9c2080f104c01a94496d97475b0b8513, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::ItemPlacementUI
+  _root: {fileID: 7776015167775636335}
 --- !u!1 &2898460821689977620
 GameObject:
   m_ObjectHideFlags: 0

@@ -456,6 +456,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 7c89531c2f2d60741850f31280b2d079, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::UIMain
+  dontDestroyOnLoad: 0
   button: {fileID: 1295494971}
 --- !u!4 &415851286
 Transform:
