@@ -14,7 +14,7 @@ public static class GameDefine
 
     public static int GridWidth = 20;
     public static int GridHeight = 20;
-    
+
 }
 
 public enum CurencyType
@@ -28,4 +28,9 @@ public enum Team
 {
     Player,
     Enemy
+}
+public enum GameMode
+{
+    Normal,
+    Edit
 }

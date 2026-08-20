@@ -1,8 +1,10 @@
 using UnityEngine;
+using UnityEngine.UI;
 
 public class ItemPlacementUI : MonoBehaviour
 {
     [SerializeField] private RectTransform _root;
+    [SerializeField] private Button cancelEditModeButton;
 
     private Canvas _canvas;
     private Transform _target;
@@ -11,6 +13,23 @@ public class ItemPlacementUI : MonoBehaviour
     private void Awake()
     {
         _canvas = GetComponentInParent<Canvas>();
+        cancelEditModeButton.onClick.AddListener(OnCancelEditModeButtonClicked);
+    }
+
+    private void OnDestroy()
+    {
+        if (cancelEditModeButton != null)
+        {
+            cancelEditModeButton.onClick.RemoveListener(OnCancelEditModeButtonClicked);
+        }
+    }
+
+    private void OnCancelEditModeButtonClicked()
+    {
+        if (GameManager.HasInstance)
+        {
+            GameManager.Instance.CancelEditMode();
+        }
     }
 
     private void LateUpdate()

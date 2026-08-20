@@ -1,10 +1,23 @@
 using Cysharp.Threading.Tasks;
 using UnityEngine;
+using R3;
 
 public class GameManager : SingletonMono<GameManager>
 {
+    private readonly ReactiveProperty<global::GameMode> _gameMode = new(global::GameMode.Normal);
+    public ReactiveProperty<global::GameMode> GameMode => _gameMode;
 
     private bool _isStartingGame;
+
+    public void EnterEditMode()
+    {
+        _gameMode.Value = global::GameMode.Edit;
+    }
+
+    public void CancelEditMode()
+    {
+        _gameMode.Value = global::GameMode.Normal;
+    }
 
     public async UniTask StartGame()
     {

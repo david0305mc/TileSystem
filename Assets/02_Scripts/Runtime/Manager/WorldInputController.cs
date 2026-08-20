@@ -1,6 +1,8 @@
+using UnityEditor;
 using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.InputSystem;
+using R3;
 
 public class WorldInputController : MonoBehaviour
 {
@@ -11,12 +13,15 @@ public class WorldInputController : MonoBehaviour
     [Header("Interaction")]
     [SerializeField] private LayerMask _interactableLayer;
     [SerializeField] private float _dragThreshold = 3f;
+    [SerializeField, Min(0f)] private float _longPressDuration = 2f;
 
     private bool _isPointerDown;
     private bool _isDraggingObject;
+    private bool _isLongPressTriggered;
 
     private Vector2 _pointerDownPosition;
     private IPointerInteractable _pressedObject;
+    private float _pointerDownTime;
     private float _dragVisualOffset = 100f;
 
     private Camera WorldCamera => _cameraController.Camera;
@@ -29,13 +34,67 @@ public class WorldInputController : MonoBehaviour
         {
             _itemPlacementUI = FindFirstObjectByType<ItemPlacementUI>(FindObjectsInactive.Include);
         }
+
+        GameManager.Instance.GameMode.Subscribe(mode =>
+        {
+            switch (mode)
+            {
+                case GameMode.Normal:
+                    _itemPlacementUI.gameObject.SetActive(false);
+                    break;
+                case GameMode.Edit:
+                    _itemPlacementUI.gameObject.SetActive(true);
+                    break;
+            }
+
+        }).AddTo(gameObject);
     }
 
     private void Update()
     {
-#if UNITY_EDITOR
+        if (HandleTouchInput())
+        {
+            return;
+        }
+
         HandleMouseInput();
-#endif
+    }
+
+    private bool HandleTouchInput()
+    {
+        var touchscreen = Touchscreen.current;
+
+        if (touchscreen == null)
+        {
+            return false;
+        }
+
+        var touch = touchscreen.primaryTouch;
+        var press = touch.press;
+
+        if (!press.isPressed &&
+            !press.wasPressedThisFrame &&
+            !press.wasReleasedThisFrame)
+        {
+            return false;
+        }
+
+        Vector2 position = touch.position.ReadValue();
+
+        if (press.wasPressedThisFrame)
+        {
+            HandlePointerDown(position, touch.touchId.ReadValue());
+            return true;
+        }
+
+        if (press.wasReleasedThisFrame)
+        {
+            HandlePointerUp();
+            return true;
+        }
+
+        HandlePointerMove(position);
+        return true;
     }
 
     private void HandleMouseInput()
@@ -65,17 +124,19 @@ public class WorldInputController : MonoBehaviour
         }
     }
 
-    private void HandlePointerDown(Vector2 screenPosition)
+    private void HandlePointerDown(Vector2 screenPosition, int pointerId = -1)
     {
         if (_isPointerDown)
             return;
 
-        if (IsPointerOverUI())
+        if (IsPointerOverUI(pointerId))
             return;
 
         _isPointerDown = true;
         _isDraggingObject = false;
+        _isLongPressTriggered = false;
         _pointerDownPosition = screenPosition;
+        _pointerDownTime = Time.unscaledTime;
 
         _pressedObject = FindInteractableObject(screenPosition);
 
@@ -102,7 +163,8 @@ public class WorldInputController : MonoBehaviour
 
         if (_pressedObject != null)
         {
-            HandleObjectDrag(screenPosition + Vector2.up * 100);
+            TryEnterEditMode(screenPosition);
+            HandleObjectDrag(screenPosition);
         }
         else
         {
@@ -123,6 +185,22 @@ public class WorldInputController : MonoBehaviour
         Vector2 dragScreenPosition = screenPosition + Vector2.up * _dragVisualOffset;
         Vector2 worldPosition = ScreenToWorldPosition(dragScreenPosition);
         _pressedObject.OnPointerDrag(worldPosition);
+    }
+
+    private void TryEnterEditMode(Vector2 screenPosition)
+    {
+        if (_isLongPressTriggered || _isDraggingObject || HasExceededDragThreshold(screenPosition) ||
+            Time.unscaledTime - _pointerDownTime < _longPressDuration)
+        {
+            return;
+        }
+
+        _isLongPressTriggered = true;
+
+        if (GameManager.HasInstance)
+        {
+            GameManager.Instance.EnterEditMode();
+        }
     }
 
     private void HandlePointerUp()
@@ -147,6 +225,7 @@ public class WorldInputController : MonoBehaviour
     {
         _isPointerDown = false;
         _isDraggingObject = false;
+        _isLongPressTriggered = false;
         _pressedObject = null;
     }
 
@@ -179,9 +258,15 @@ public class WorldInputController : MonoBehaviour
         return WorldCamera.ScreenToWorldPoint(screenPosition);
     }
 
-    private static bool IsPointerOverUI()
+    private static bool IsPointerOverUI(int pointerId = -1)
     {
-        return EventSystem.current != null &&
-               EventSystem.current.IsPointerOverGameObject();
+        if (EventSystem.current == null)
+        {
+            return false;
+        }
+
+        return pointerId < 0
+            ? EventSystem.current.IsPointerOverGameObject()
+            : EventSystem.current.IsPointerOverGameObject(pointerId);
     }
 }
