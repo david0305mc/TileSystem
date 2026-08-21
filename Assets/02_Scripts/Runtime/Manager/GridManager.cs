@@ -43,10 +43,10 @@ public class GridManager : SingletonMono<GridManager>
             IsWalkable);
 
         CreateFloorTileObjs();
-        GenerateBuildingRandom();
+        GeneratePlaceableObjRandom();
         GenerateNpcRandom();
     }
-    private void GenerateBuildingRandom()
+    private void GeneratePlaceableObjRandom()
     {
         var createdCount = 0;
         var attemptCount = 0;
@@ -207,6 +207,7 @@ public class GridManager : SingletonMono<GridManager>
         }
 
         var localPos = GridToWorld(gridPos);
+        
         PlaceableObj placeableObj = Lean.Pool.LeanPool.Spawn(_placeableObjPrefab, _gridRoot);
         placeableObj.Initialize();
         placeableObj.transform.localPosition = localPos;
