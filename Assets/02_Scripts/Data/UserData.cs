@@ -19,6 +19,7 @@ public sealed class UserData : IDtoConvertible<UserDataDto>
     public UserCurrencyData Currency { get; private set; } = new();
 
     public Dictionary<int, SkillData> Skills { get; private set; } = new();
+    public Dictionary<long, PlaceableObj> PlaceableObjs { get; private set; } = new();
 
     public Dictionary<Vector2Int, TileData> Tiles { get; } = new();
     public bool TryGetTileData(int x, int y, out TileData tileData) => Tiles.TryGetValue(new Vector2Int(x, y), out tileData);
@@ -62,9 +63,7 @@ public sealed class UserData : IDtoConvertible<UserDataDto>
             Currency.ApplyDto(dto.CurrencyDto);
 
         DataMapperUtil.ApplyDtoDictionary(
-            Skills,
-            dto.SkillDtos,
-            dtoValue =>
+            Skills, dto.SkillDtos, dtoValue =>
             {
                 var skillData = new SkillData(dtoValue.SkillID);
                 skillData.ApplyDto(dtoValue);

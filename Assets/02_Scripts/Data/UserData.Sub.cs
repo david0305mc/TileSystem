@@ -71,6 +71,38 @@ public sealed class SkillDataDto
 }
 
 
+public sealed class PlaceableObjData : IDtoConvertible<PlaceableObjDataDto>
+{
+    public long Uid;
+    public int GridX;
+    public int GridY;
+
+    public void ApplyDto(PlaceableObjDataDto dto)
+    {
+        Uid = dto.Uid;
+        GridX = dto.GridX;
+        GridY = dto.GridY;
+    }
+
+    public PlaceableObjDataDto ToDto()
+    {
+        return new PlaceableObjDataDto()
+        {
+            Uid = Uid,
+            GridX = GridX,
+            GridY = GridY
+        };
+    }
+}
+
+public sealed class PlaceableObjDataDto
+{
+    public long Uid;
+    public int GridX;
+    public int GridY;
+}
+
+
 public sealed class HeroData : IDtoConvertible<HeroDataDto>
 {
     public long UID { get; private set; }
