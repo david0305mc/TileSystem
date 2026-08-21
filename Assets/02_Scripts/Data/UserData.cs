@@ -50,6 +50,7 @@ public sealed class UserData : IDtoConvertible<UserDataDto>
         });
 
         CreateDefaultTiles();
+        CreateDefaultPlaceableObjs();
     }
 
     public void ApplyDto(UserDataDto dto)
@@ -72,7 +73,7 @@ public sealed class UserData : IDtoConvertible<UserDataDto>
                 return skillData;
             });
         DataMapperUtil.ApplyDtoDictionary(
-            PlaceableObjs, dto.Placeables, dtoValue=>
+            PlaceableObjs, dto.Placeables, dtoValue =>
             {
                 var data = new PlaceableObjData();
                 data.ApplyDto(dtoValue);
@@ -162,5 +163,46 @@ public sealed class UserData : IDtoConvertible<UserDataDto>
                 };
             }
         }
+    }
+    private void CreateDefaultPlaceableObjs()
+    {
+        CreatePlaceableObj(100001, 5, 5);
+        CreatePlaceableObj(100002, 7, 5);
+        CreatePlaceableObj(100003, 8, 3);
+        CreatePlaceableObj(100004, 6, 5);
+    }
+    public PlaceableObjData CreatePlaceableObj(int tid, int gridX, int gridY)
+    {
+        var furnitureData = DataManager.Instance.GetFurnitureData(tid);
+        if (furnitureData == null)
+            return null;
+
+        int sizeX = furnitureData.sizex > 0 ? furnitureData.sizex : 1;
+        int sizeY = furnitureData.sizey > 0 ? furnitureData.sizey : 1;
+
+        for (int x = gridX; x < gridX + sizeX; x++)
+        {
+            for (int y = gridY; y < gridY + sizeY; y++)
+            {
+                if (!TryGetTileData(x, y, out var tileData) ||
+                    !tileData.IsUnlocked ||
+                    tileData.IsOccupied)
+                {
+                    return null;
+                }
+            }
+        }
+
+        long uid = GeneratePersistentUid();
+        var placeableObjData = new PlaceableObjData
+        {
+            Uid = uid,
+            TableID = tid,
+            GridX = gridX,
+            GridY = gridY
+        };
+
+        PlaceableObjs.Add(uid, placeableObjData);
+        return placeableObjData;
     }
 }

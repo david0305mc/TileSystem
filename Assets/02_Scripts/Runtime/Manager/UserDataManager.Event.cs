@@ -49,53 +49,26 @@ public partial class UserDataManager : Singleton<UserDataManager>
         SaveLocalDataAsync().Forget();
     }
 
-    public void CreatePlaceableObj(int tid, int gridX, int gridY)
+    public PlaceableObjData CreatePlaceableObj(int tid, int gridX, int gridY)
     {
-        if (User == null || tid <= 0)
-            return;
+        var placeableObjData = User.CreatePlaceableObj(tid, gridX, gridY);
+        if (placeableObjData == null)
+            return null;
 
-        var furnitureData = DataManager.Instance.GetFurnitureData(tid);
-        if (furnitureData == null)
-            return;
+        var furnitureInfo = DataManager.Instance.GetFurnitureData(tid);
 
-        int sizeX = furnitureData.sizex > 0 ? furnitureData.sizex : 1;
-        int sizeY = furnitureData.sizey > 0 ? furnitureData.sizey : 1;
-
-        for (int x = gridX; x < gridX + sizeX; x++)
+        bool blocksMovement = furnitureInfo.blocksmovement != 0;
+        for (int x = gridX; x < gridX + furnitureInfo.sizex; x++)
         {
-            for (int y = gridY; y < gridY + sizeY; y++)
-            {
-                if (!User.TryGetTileData(x, y, out var tileData) ||
-                    !tileData.IsUnlocked ||
-                    tileData.IsOccupied)
-                {
-                    return;
-                }
-            }
-        }
-
-        long uid = User.GeneratePersistentUid();
-        var placeableObjData = new PlaceableObjData
-        {
-            Uid = uid,
-            TableID = tid,
-            GridX = gridX,
-            GridY = gridY
-        };
-
-        User.PlaceableObjs.Add(uid, placeableObjData);
-
-        bool blocksMovement = furnitureData.blocksmovement != 0;
-        for (int x = gridX; x < gridX + sizeX; x++)
-        {
-            for (int y = gridY; y < gridY + sizeY; y++)
+            for (int y = gridY; y < gridY + furnitureInfo.sizey; y++)
             {
                 User.TryGetTileData(x, y, out var tileData);
-                tileData.FurnitureId = uid;
+                tileData.FurnitureId = placeableObjData.Uid;
                 tileData.BlocksMovement = blocksMovement;
             }
         }
 
         SaveLocalDataAsync().Forget();
+        return placeableObjData;
     }
 }

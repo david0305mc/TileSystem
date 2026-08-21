@@ -43,27 +43,14 @@ public class GridManager : SingletonMono<GridManager>
             IsWalkable);
 
         CreateFloorTileObjs();
-        GeneratePlaceableObjRandom();
+        GeneratePlaceableObjsFromUserData();
         GenerateNpcRandom();
     }
-    private void GeneratePlaceableObjRandom()
+    private void GeneratePlaceableObjsFromUserData()
     {
-        var createdCount = 0;
-        var attemptCount = 0;
-
-        while (createdCount < 5 && attemptCount++ < 100)
+        foreach (var obj in UserDataManager.Instance.User.PlaceableObjs)
         {
-            int x = Random.Range(0, GameDefine.GridWidth);
-            int y = Random.Range(0, GameDefine.GridHeight);
-            var gridPosition = new Vector2Int(x, y);
-
-            if (!IsWalkable(gridPosition))
-            {
-                continue;
-            }
-
-            CreateBuildingObj(gridPosition);
-            createdCount++;
+            CreateBuildingObj(new Vector2Int(obj.Value.GridX, obj.Value.GridY));            
         }
     }
 
