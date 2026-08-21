@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using Unity.VisualScripting;
 using UnityEngine;
 
 public sealed class UserDataDto
@@ -6,6 +7,7 @@ public sealed class UserDataDto
     public long NextPersistentUid;
     public UserCurrencyDataDto CurrencyDto = new();
     public Dictionary<int, SkillDataDto> SkillDtos = new();
+    public Dictionary<long, PlaceableObjDataDto> Placeables = new();
     public List<TileDataDto> TileDtos = new();
     public HeroDataDto HeroDto = new();
 }
@@ -19,7 +21,7 @@ public sealed class UserData : IDtoConvertible<UserDataDto>
     public UserCurrencyData Currency { get; private set; } = new();
 
     public Dictionary<int, SkillData> Skills { get; private set; } = new();
-    public Dictionary<long, PlaceableObj> PlaceableObjs { get; private set; } = new();
+    public Dictionary<long, PlaceableObjData> PlaceableObjs { get; private set; } = new();
 
     public Dictionary<Vector2Int, TileData> Tiles { get; } = new();
     public bool TryGetTileData(int x, int y, out TileData tileData) => Tiles.TryGetValue(new Vector2Int(x, y), out tileData);
@@ -39,6 +41,7 @@ public sealed class UserData : IDtoConvertible<UserDataDto>
 
         Skills.Clear();
         Tiles.Clear();
+        PlaceableObjs.Clear();
 
         Hero.ApplyDto(new HeroDataDto
         {
@@ -69,6 +72,14 @@ public sealed class UserData : IDtoConvertible<UserDataDto>
                 skillData.ApplyDto(dtoValue);
                 return skillData;
             });
+        DataMapperUtil.ApplyDtoDictionary(
+            PlaceableObjs, dto.Placeables, dtoValue=>
+            {
+                var data = new PlaceableObjData();
+                data.ApplyDto(dtoValue);
+                return data;
+            }
+        );
 
         ApplyTileDtos(dto.TileDtos);
 
@@ -82,8 +93,8 @@ public sealed class UserData : IDtoConvertible<UserDataDto>
         {
             NextPersistentUid = NextPersistentUid,
             CurrencyDto = Currency.ToDto(),
-            SkillDtos =
-                DataMapperUtil.ToDtoDictionary<int, SkillData, SkillDataDto>(Skills),
+            SkillDtos = DataMapperUtil.ToDtoDictionary<int, SkillData, SkillDataDto>(Skills),
+            Placeables = DataMapperUtil.ToDtoDictionary<long, PlaceableObjData, PlaceableObjDataDto>(PlaceableObjs),
             TileDtos = ToTileDtos(),
             HeroDto = Hero.ToDto()
         };
