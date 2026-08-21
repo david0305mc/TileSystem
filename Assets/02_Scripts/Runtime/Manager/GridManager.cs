@@ -50,7 +50,7 @@ public class GridManager : SingletonMono<GridManager>
     {
         foreach (var obj in UserDataManager.Instance.User.PlaceableObjs)
         {
-            CreateBuildingObj(new Vector2Int(obj.Value.GridX, obj.Value.GridY));            
+            CreateBuildingObj(obj.Key);            
         }
     }
 
@@ -186,17 +186,14 @@ public class GridManager : SingletonMono<GridManager>
         });
         _floorTileObjs[gridPos.x, gridPos.y] = tileObj;
     }
-    private void CreateBuildingObj(Vector2Int gridPos)
+    private void CreateBuildingObj(long uid)
     {
-        if (!IsWalkable(gridPos))
-        {
-            return;
-        }
-
+        UserDataManager.Instance.User.TryGetPlaceableObjData(uid, out var placeableObjData);
+        var gridPos = new Vector2Int(placeableObjData.GridX, placeableObjData.GridY);
         var localPos = GridToWorld(gridPos);
         
         PlaceableObj placeableObj = Lean.Pool.LeanPool.Spawn(_placeableObjPrefab, _gridRoot);
-        placeableObj.Initialize();
+        placeableObj.Initialize(placeableObjData);
         placeableObj.transform.localPosition = localPos;
         placeableObj.transform.localRotation = Quaternion.identity;
         SetBlocked(gridPos, true);

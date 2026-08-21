@@ -21,6 +21,7 @@ public sealed class UserData : IDtoConvertible<UserDataDto>
 
     public Dictionary<int, SkillData> Skills { get; private set; } = new();
     public Dictionary<long, PlaceableObjData> PlaceableObjs { get; private set; } = new();
+    public bool TryGetPlaceableObjData(long uid, out PlaceableObjData placeableObjData) => PlaceableObjs.TryGetValue(uid, out placeableObjData);
 
     public Dictionary<Vector2Int, TileData> Tiles { get; } = new();
     public bool TryGetTileData(int x, int y, out TileData tileData) => Tiles.TryGetValue(new Vector2Int(x, y), out tileData);

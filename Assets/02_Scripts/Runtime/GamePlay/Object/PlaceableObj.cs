@@ -12,9 +12,10 @@ public class PlaceableObj : MonoBehaviour, IPointerInteractable
     {
 
     }
-    public void Initialize()
+    public void Initialize(PlaceableObjData placeableObjData)
     {
-        spriteRenderer.sprite = ResourceManager.Instance.GetSpriteFromAtlas("2100000_01_1");
+        var tableData = DataManager.Instance.GetFurnitureData(placeableObjData.TableID);
+        spriteRenderer.sprite = ResourceManager.Instance.GetSpriteFromAtlas(tableData.spritepath);
     }
 
     public void OnPointerDown(Vector2 worldPosition)
@@ -32,6 +33,7 @@ public class PlaceableObj : MonoBehaviour, IPointerInteractable
         if (TryGetNearestGridPosition(out var gridPosition))
         {
             transform.position = gridPosition;
+
             return;
         }
 
