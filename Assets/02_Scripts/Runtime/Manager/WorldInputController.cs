@@ -139,6 +139,7 @@ public class WorldInputController : MonoBehaviour
         _pointerDownTime = Time.unscaledTime;
 
         _pressedObject = FindInteractableObject(screenPosition);
+        _cameraController.BeginDrag(screenPosition);
 
         if (_pressedObject != null)
         {
@@ -149,10 +150,6 @@ public class WorldInputController : MonoBehaviour
             {
                 _itemPlacementUI?.SetTarget(pressedComponent.transform, WorldCamera);
             }
-        }
-        else
-        {
-            _cameraController.BeginDrag(screenPosition);
         }
     }
 
@@ -165,6 +162,10 @@ public class WorldInputController : MonoBehaviour
         {
             TryEnterEditMode(screenPosition);
             HandleObjectDrag(screenPosition);
+            if (GameManager.Instance.GameMode.Value == GameMode.Normal)
+            {
+                _cameraController.UpdateDrag(screenPosition);
+            }
         }
         else
         {
@@ -182,9 +183,12 @@ public class WorldInputController : MonoBehaviour
             _isDraggingObject = true;
         }
 
-        Vector2 dragScreenPosition = screenPosition + Vector2.up * _dragVisualOffset;
-        Vector2 worldPosition = ScreenToWorldPosition(dragScreenPosition);
-        _pressedObject.OnPointerDrag(worldPosition);
+        if (GameManager.Instance.GameMode.Value == GameMode.Edit)
+        {
+            Vector2 dragScreenPosition = screenPosition + Vector2.up * _dragVisualOffset;
+            Vector2 worldPosition = ScreenToWorldPosition(dragScreenPosition);
+            _pressedObject.OnPointerDrag(worldPosition);
+        }
     }
 
     private void TryEnterEditMode(Vector2 screenPosition)
@@ -213,10 +217,7 @@ public class WorldInputController : MonoBehaviour
             // 클릭이든 드래그든 PointerDown 된 객체가 PointerUp도 받도록 함.
             _pressedObject.OnPointerUp();
         }
-        else
-        {
-            _cameraController.EndDrag();
-        }
+        _cameraController.EndDrag();
 
         ResetPointerState();
     }
