@@ -7,14 +7,17 @@ public class PlaceableObj : MonoBehaviour, IPointerInteractable
     [SerializeField] private SpriteRenderer spriteRenderer;
 
     private Vector3 _positionBeforeDrag;
-    private System.Action<Vector2Int> _pointUpAction;
+    private System.Action<long> _pointUpAction;
+    private PlaceableObjData _placeableObjData;
+    public long Uid=>_placeableObjData.Uid;
 
     public void OnClick()
     {
 
     }
-    public void Initialize(PlaceableObjData placeableObjData, System.Action<Vector2Int> pointUpAction)
+    public void Initialize(PlaceableObjData placeableObjData, System.Action<long> pointUpAction)
     {
+        _placeableObjData = placeableObjData;
         _pointUpAction = pointUpAction;
         var tableData = DataManager.Instance.GetFurnitureData(placeableObjData.TableID);
         spriteRenderer.sprite = ResourceManager.Instance.GetSpriteFromAtlas(tableData.spritepath);
@@ -35,7 +38,7 @@ public class PlaceableObj : MonoBehaviour, IPointerInteractable
         if (TryGetNearestGridPosition(out var gridPosition))
         {
             transform.position = gridPosition;
-            _pointUpAction?.Invoke(new Vector2Int(5, 5));
+            _pointUpAction?.Invoke(_placeableObjData.Uid);
             return;
         }
 

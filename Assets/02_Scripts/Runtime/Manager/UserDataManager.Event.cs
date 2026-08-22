@@ -1,4 +1,5 @@
 using Cysharp.Threading.Tasks;
+using UnityEngine;
 
 public partial class UserDataManager : Singleton<UserDataManager>
 {
@@ -71,4 +72,18 @@ public partial class UserDataManager : Singleton<UserDataManager>
         SaveLocalDataAsync().Forget();
         return placeableObjData;
     }
+    public void MovePlaceableObj(long placeableUid, Vector2Int targetGridPos)
+    {
+
+        var placeableData = User.PlaceableObjs[placeableUid];
+        var beforeTileData = User.Tiles[new Vector2Int(placeableData.GridX, placeableData.GridY)];
+        var afterTileData = User.Tiles[targetGridPos];
+        
+        beforeTileData.FurnitureId = 0;
+        afterTileData.FurnitureId = placeableData.Uid;
+        placeableData.GridX = targetGridPos.x;
+        placeableData.GridY = targetGridPos.y;
+        SaveLocalDataAsync().Forget();
+    }
+
 }
