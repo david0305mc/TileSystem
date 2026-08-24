@@ -147,13 +147,9 @@ public sealed class TileData : IDtoConvertible<TileDataDto>
 
     public bool IsUnlocked { get; set; }
 
-    public bool BlocksMovement { get; set; }
-
     public bool IsOccupied => FurnitureId != 0;
 
-    public bool IsWalkable =>
-        IsUnlocked &&
-        !BlocksMovement;
+    public bool IsWalkable => IsUnlocked && !IsOccupied;
 
     public TileData(Vector2Int position)
     {
@@ -165,7 +161,6 @@ public sealed class TileData : IDtoConvertible<TileDataDto>
         TableID = dto.TableID;
         FurnitureId = dto.FurnitureId;
         IsUnlocked = dto.IsUnlocked;
-        BlocksMovement = dto.BlocksMovement;
     }
 
     public TileDataDto ToDto()
@@ -176,8 +171,7 @@ public sealed class TileData : IDtoConvertible<TileDataDto>
             Y = Position.y,
             TableID = TableID,
             FurnitureId = FurnitureId,
-            IsUnlocked = IsUnlocked,
-            BlocksMovement = BlocksMovement
+            IsUnlocked = IsUnlocked
         };
     }
 }
@@ -191,5 +185,4 @@ public sealed class TileDataDto
     public long FurnitureId;
 
     public bool IsUnlocked;
-    public bool BlocksMovement;
 }
