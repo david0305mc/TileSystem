@@ -19,7 +19,7 @@ public enum AStarCellState
 }
 
 /// <summary>
-/// 상하좌우 4방향 그리드에서 동작하는 A* 경로 탐색기입니다.
+/// 상하좌우와 대각선을 포함한 8방향 그리드에서 동작하는 A* 경로 탐색기입니다.
 /// 월드 좌표 변환이나 MonoBehaviour에 의존하지 않습니다.
 /// </summary>
 public sealed class AStarPathfinder
@@ -106,9 +106,13 @@ public sealed class AStarSearchSession
     private static readonly Vector2Int[] Directions =
     {
         Vector2Int.up,
+        Vector2Int.up + Vector2Int.right,
         Vector2Int.right,
+        Vector2Int.down + Vector2Int.right,
         Vector2Int.down,
-        Vector2Int.left
+        Vector2Int.down + Vector2Int.left,
+        Vector2Int.left,
+        Vector2Int.up + Vector2Int.left
     };
 
     private readonly AStarPathfinder _pathfinder;
@@ -152,7 +156,7 @@ public sealed class AStarSearchSession
         _startNode = GetNode(start);
         _targetNode = GetNode(target);
         _startNode.GCost = 0;
-        _startNode.HCost = GetManhattanCost(start, target);
+        _startNode.HCost = GetOctileCost(start, target);
         _startNode.State = AStarCellState.Open;
         _openSet.Add(_startNode);
         Status = AStarSearchStatus.Searching;
@@ -203,13 +207,21 @@ public sealed class AStarSearchSession
                 continue;
             }
 
+            var isDiagonal = direction.x != 0 && direction.y != 0;
+            if (isDiagonal &&
+                (!_pathfinder.IsWalkable(currentNode.Position + new Vector2Int(direction.x, 0)) ||
+                 !_pathfinder.IsWalkable(currentNode.Position + new Vector2Int(0, direction.y))))
+            {
+                continue;
+            }
+
             var neighbour = GetNode(neighbourPosition);
             if (_closedSet.Contains(neighbour))
             {
                 continue;
             }
 
-            const int movementCost = 10;
+            var movementCost = isDiagonal ? 14 : 10;
             var newCost = currentNode.GCost + movementCost;
             if (newCost >= neighbour.GCost)
             {
@@ -217,7 +229,7 @@ public sealed class AStarSearchSession
             }
 
             neighbour.GCost = newCost;
-            neighbour.HCost = GetManhattanCost(neighbour.Position, Target);
+            neighbour.HCost = GetOctileCost(neighbour.Position, Target);
             neighbour.Parent = currentNode;
 
             if (!_openSet.Contains(neighbour))
@@ -279,8 +291,13 @@ public sealed class AStarSearchSession
         _path.Reverse();
     }
 
-    private static int GetManhattanCost(Vector2Int from, Vector2Int to)
+    private static int GetOctileCost(Vector2Int from, Vector2Int to)
     {
-        return (Mathf.Abs(from.x - to.x) + Mathf.Abs(from.y - to.y)) * 10;
+        var deltaX = Mathf.Abs(from.x - to.x);
+        var deltaY = Mathf.Abs(from.y - to.y);
+        var diagonalDistance = Mathf.Min(deltaX, deltaY);
+        var straightDistance = Mathf.Max(deltaX, deltaY) - diagonalDistance;
+
+        return diagonalDistance * 14 + straightDistance * 10;
     }
 }
