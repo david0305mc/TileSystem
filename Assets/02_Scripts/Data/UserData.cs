@@ -158,9 +158,8 @@ public sealed class UserData : IDtoConvertible<UserDataDto>
                 Tiles[position] = new TileData(position)
                 {
                     TableID = 1,
-                    FurnitureId = 0,
-                    IsUnlocked = true,
-                    BlocksMovement = false
+                    FurnitureUid = 0,
+                    IsUnlocked = true
                 };
             }
         }

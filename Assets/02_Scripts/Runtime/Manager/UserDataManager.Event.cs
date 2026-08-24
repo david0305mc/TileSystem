@@ -64,8 +64,7 @@ public partial class UserDataManager : Singleton<UserDataManager>
             for (int y = gridY; y < gridY + furnitureInfo.sizey; y++)
             {
                 User.TryGetTileData(x, y, out var tileData);
-                tileData.FurnitureId = placeableObjData.Uid;
-                tileData.BlocksMovement = blocksMovement;
+                tileData.FurnitureUid = placeableObjData.Uid;
             }
         }
 
@@ -79,8 +78,8 @@ public partial class UserDataManager : Singleton<UserDataManager>
         var beforeTileData = User.Tiles[new Vector2Int(placeableData.GridX, placeableData.GridY)];
         var afterTileData = User.Tiles[targetGridPos];
         
-        beforeTileData.FurnitureId = 0;
-        afterTileData.FurnitureId = placeableData.Uid;
+        beforeTileData.FurnitureUid = 0;
+        afterTileData.FurnitureUid = placeableData.Uid;
         placeableData.GridX = targetGridPos.x;
         placeableData.GridY = targetGridPos.y;
         SaveLocalDataAsync().Forget();
