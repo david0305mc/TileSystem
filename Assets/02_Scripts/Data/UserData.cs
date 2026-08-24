@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 
 public sealed class UserDataDto
@@ -169,27 +170,66 @@ public sealed class UserData : IDtoConvertible<UserDataDto>
         CreatePlaceableObj(100003, 8, 3);
         CreatePlaceableObj(100004, 6, 5);
     }
-    public PlaceableObjData CreatePlaceableObj(int tid, int gridX, int gridY)
+    public bool RemovePlaceableObj(long uid)
     {
-        var furnitureData = DataManager.Instance.GetFurnitureData(tid);
-        if (furnitureData == null)
-            return null;
+        if (!TryGetPlaceableObjData(uid, out PlaceableObjData placeableObjData))
+        {
+            return false;
+        }
 
-        int sizeX = furnitureData.sizex > 0 ? furnitureData.sizex : 1;
-        int sizeY = furnitureData.sizey > 0 ? furnitureData.sizey : 1;
+        if (!TryGetPlaceableTiles(placeableObjData.TableData.id, placeableObjData.GridX, placeableObjData.GridY, out var tiles))
+        {
+            return false;
+        }
+
+        foreach (var tileData in tiles)
+        {
+            if (tileData.FurnitureUid == uid)
+            {
+                tileData.FurnitureUid = 0;
+            }
+        }
+        PlaceableObjs.Remove(uid);
+        return true;
+
+    }
+    public bool TryGetPlaceableTiles(int furnitureId, int gridX, int gridY, out List<TileData> tiles)
+    {
+        tiles = null;
+
+        var furnitureData = DataManager.Instance.GetFurnitureData(furnitureId);
+        if (furnitureData == null)
+            return false;
+
+        int sizeX = Mathf.Max(1, furnitureData.sizex);
+        int sizeY = Mathf.Max(1, furnitureData.sizey);
+
+        var result = new List<TileData>(sizeX * sizeY);
 
         for (int x = gridX; x < gridX + sizeX; x++)
         {
             for (int y = gridY; y < gridY + sizeY; y++)
             {
-                if (!TryGetTileData(x, y, out var tileData) ||
-                    !tileData.IsUnlocked ||
-                    tileData.IsOccupied)
-                {
-                    return null;
-                }
+                if (!TryGetTileData(x, y, out var tileData))
+                    return false;
+
+                result.Add(tileData);
             }
         }
+
+        tiles = result;
+        return true;
+    }
+    public PlaceableObjData CreatePlaceableObj(int tid, int gridX, int gridY)
+    {
+        if (!TryGetPlaceableTiles(tid, gridX, gridY, out var tileDatas))
+        {
+            return null;
+        }
+
+        var furnitureData = DataManager.Instance.GetFurnitureData(tid);
+        if (furnitureData == null)
+            return null;
 
         long uid = GeneratePersistentUid();
         var placeableObjData = new PlaceableObjData(new PlaceableObjDataDto()
@@ -200,6 +240,46 @@ public sealed class UserData : IDtoConvertible<UserDataDto>
             GridY = gridY
         });
         PlaceableObjs.Add(uid, placeableObjData);
+        foreach (var tileData in tileDatas)
+        {
+            tileData.FurnitureUid = placeableObjData.Uid;
+        }
         return placeableObjData;
+    }
+
+    public bool TryMovePlaceableObj(long placeableUid, Vector2Int targetGridPos)
+    {
+        if (!TryGetPlaceableObjData(placeableUid, out var placeableObjData))
+        {
+            return false;
+        }
+        if (!TryGetPlaceableTiles(placeableObjData.TableID, targetGridPos.x, targetGridPos.y, out var targetTiles))
+        {
+            return false;
+        }
+
+        bool hasUnavailableTile = targetTiles.Any(item => !item.IsUnlocked || (item.FurnitureUid != placeableUid && item.IsOccupied));
+        if (hasUnavailableTile)
+        {
+            return false;
+        }
+        if (!TryGetPlaceableTiles(placeableObjData.TableID, placeableObjData.GridX, placeableObjData.GridY, out var currentTiles))
+        {
+            return false;
+        }
+
+        foreach (var tileData in currentTiles)
+        {
+            tileData.FurnitureUid = 0;
+        }
+
+        placeableObjData.GridX = targetGridPos.x;
+        placeableObjData.GridY = targetGridPos.y;
+
+        foreach (var targetTileData in targetTiles)
+        {
+            targetTileData.FurnitureUid = placeableUid;
+        }
+        return true;   
     }
 }

@@ -1,4 +1,6 @@
+using System.Linq;
 using Cysharp.Threading.Tasks;
+using UnityEditor;
 using UnityEngine;
 
 public partial class UserDataManager : Singleton<UserDataManager>
@@ -57,8 +59,6 @@ public partial class UserDataManager : Singleton<UserDataManager>
             return null;
 
         var furnitureInfo = DataManager.Instance.GetFurnitureData(tid);
-
-        bool blocksMovement = furnitureInfo.blocksmovement != 0;
         for (int x = gridX; x < gridX + furnitureInfo.sizex; x++)
         {
             for (int y = gridY; y < gridY + furnitureInfo.sizey; y++)
@@ -73,15 +73,10 @@ public partial class UserDataManager : Singleton<UserDataManager>
     }
     public void MovePlaceableObj(long placeableUid, Vector2Int targetGridPos)
     {
-
-        var placeableData = User.PlaceableObjs[placeableUid];
-        var beforeTileData = User.Tiles[new Vector2Int(placeableData.GridX, placeableData.GridY)];
-        var afterTileData = User.Tiles[targetGridPos];
-        
-        beforeTileData.FurnitureUid = 0;
-        afterTileData.FurnitureUid = placeableData.Uid;
-        placeableData.GridX = targetGridPos.x;
-        placeableData.GridY = targetGridPos.y;
+        if (!User.TryMovePlaceableObj(placeableUid, targetGridPos))
+        {
+            return;
+        }
         SaveLocalDataAsync().Forget();
     }
 

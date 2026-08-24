@@ -20,7 +20,6 @@ public class GridManager : SingletonMono<GridManager>
     [SerializeField] private Sprite _stoneFloorSprite;
 
     private FloorTileObj[,] _floorTileObjs;
-    private bool[,] _blockedCells;
     private AStarPathfinder _pathfinder;
     private Camera _mainCamera;
 
@@ -36,11 +35,7 @@ public class GridManager : SingletonMono<GridManager>
         UpdateGridRoot();
         ClearFloorObjs();
         _floorTileObjs = new FloorTileObj[GameDefine.GridWidth, GameDefine.GridHeight];
-        _blockedCells = new bool[GameDefine.GridWidth, GameDefine.GridHeight];
-        _pathfinder = new AStarPathfinder(
-            GameDefine.GridWidth,
-            GameDefine.GridHeight,
-            IsWalkable);
+        _pathfinder = new AStarPathfinder(GameDefine.GridWidth, GameDefine.GridHeight, IsWalkable);
 
         CreateFloorTileObjs();
         GeneratePlaceableObjsFromUserData();
@@ -50,7 +45,7 @@ public class GridManager : SingletonMono<GridManager>
     {
         foreach (var obj in UserDataManager.Instance.User.PlaceableObjs)
         {
-            CreateBuildingObj(obj.Key);            
+            CreateBuildingObj(obj.Key);
         }
     }
 
@@ -191,7 +186,7 @@ public class GridManager : SingletonMono<GridManager>
         UserDataManager.Instance.User.TryGetPlaceableObjData(uid, out var placeableObjData);
         var gridPos = new Vector2Int(placeableObjData.GridX, placeableObjData.GridY);
         var localPos = GridToWorld(gridPos);
-        
+
         PlaceableObj placeableObj = Lean.Pool.LeanPool.Spawn(_placeableObjPrefab, _gridRoot);
         placeableObj.Initialize(placeableObjData, (uid) =>
         {
@@ -199,16 +194,15 @@ public class GridManager : SingletonMono<GridManager>
         });
         placeableObj.transform.localPosition = localPos;
         placeableObj.transform.localRotation = Quaternion.identity;
-        SetBlocked(gridPos, true);
     }
 
     private void OnBuildingTouchUp(PlaceableObj placeableObj)
     {
         // Check building pos
-        if(TryWorldToGridPosition(placeableObj.transform.position, out var gridPos))
+        if (TryWorldToGridPosition(placeableObj.transform.position, out var gridPos))
         {
-            UserDataManager.Instance.MovePlaceableObj(placeableObj.Uid, gridPos);    
-        }   
+            UserDataManager.Instance.MovePlaceableObj(placeableObj.Uid, gridPos);
+        }
     }
 
     public void ChangeFloorTile(Vector2Int gridPos)
@@ -228,18 +222,11 @@ public class GridManager : SingletonMono<GridManager>
 
     public bool IsWalkable(Vector2Int position)
     {
-        return IsValidPosition(position) && (_blockedCells == null || !_blockedCells[position.x, position.y]);
-    }
-
-    public bool SetBlocked(Vector2Int position, bool blocked)
-    {
-        if (!IsValidPosition(position) || _blockedCells == null)
+        if (UserDataManager.Instance.User.TryGetTileData(position.x, position.y, out var tileData))
         {
-            return false;
+            return tileData.IsWalkable;
         }
-
-        _blockedCells[position.x, position.y] = blocked;
-        return true;
+        return false;
     }
 
     public bool TryFindPath(
