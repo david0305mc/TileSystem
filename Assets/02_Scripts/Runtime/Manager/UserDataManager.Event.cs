@@ -1,6 +1,4 @@
-using System.Linq;
 using Cysharp.Threading.Tasks;
-using UnityEditor;
 using UnityEngine;
 
 public partial class UserDataManager : Singleton<UserDataManager>
@@ -71,13 +69,14 @@ public partial class UserDataManager : Singleton<UserDataManager>
         SaveLocalDataAsync().Forget();
         return placeableObjData;
     }
-    public void MovePlaceableObj(long placeableUid, Vector2Int targetGridPos)
+    public bool TryMovePlaceableObj(long placeableUid, Vector2Int targetGridPos)
     {
         if (!User.TryMovePlaceableObj(placeableUid, targetGridPos))
         {
-            return;
+            return false;
         }
         SaveLocalDataAsync().Forget();
+        return true;
     }
 
 }

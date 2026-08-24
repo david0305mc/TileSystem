@@ -3,19 +3,19 @@ using UnityEngine;
 public class PlaceableObj : MonoBehaviour, IPointerInteractable
 {
     [SerializeField, Min(0f)] private float _snapDistance = 0.5f;
-    
+
     [SerializeField] private SpriteRenderer spriteRenderer;
 
     private Vector3 _positionBeforeDrag;
-    private System.Action<long> _pointUpAction;
+    private System.Func<long, bool> _pointUpAction;
     private PlaceableObjData _placeableObjData;
-    public long Uid=>_placeableObjData.Uid;
+    public long Uid => _placeableObjData.Uid;
 
     public void OnClick()
     {
 
     }
-    public void Initialize(PlaceableObjData placeableObjData, System.Action<long> pointUpAction)
+    public void Initialize(PlaceableObjData placeableObjData, System.Func<long, bool> pointUpAction)
     {
         _placeableObjData = placeableObjData;
         _pointUpAction = pointUpAction;
@@ -35,19 +35,23 @@ public class PlaceableObj : MonoBehaviour, IPointerInteractable
 
     public void OnPointerUp()
     {
-        if (TryGetNearestGridPosition(out var gridPosition))
+        if (TryGetNearestGridPosition(out var nearestWorldPos))
         {
-            transform.position = gridPosition;
-            _pointUpAction?.Invoke(_placeableObjData.Uid);
+            transform.position = nearestWorldPos;
+            bool moveSucceeded = _pointUpAction.Invoke(_placeableObjData.Uid);
+            if (!moveSucceeded)
+            {
+                transform.position = _positionBeforeDrag;
+            }
             return;
         }
 
         transform.position = _positionBeforeDrag;
     }
 
-    private bool TryGetNearestGridPosition(out Vector3 gridPosition)
+    private bool TryGetNearestGridPosition(out Vector3 nearestWorldPos)
     {
-        gridPosition = default;
+        nearestWorldPos = default;
 
         if (!GridManager.HasInstance)
         {
@@ -76,7 +80,7 @@ public class PlaceableObj : MonoBehaviour, IPointerInteractable
                 }
 
                 nearestDistanceSqr = distanceSqr;
-                gridPosition = new Vector3(floorPosition.x, floorPosition.y, transform.position.z);
+                nearestWorldPos = new Vector3(floorPosition.x, floorPosition.y, transform.position.z);
             }
         }
 

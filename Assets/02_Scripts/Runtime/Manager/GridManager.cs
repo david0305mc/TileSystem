@@ -190,19 +190,19 @@ public class GridManager : SingletonMono<GridManager>
         PlaceableObj placeableObj = Lean.Pool.LeanPool.Spawn(_placeableObjPrefab, _gridRoot);
         placeableObj.Initialize(placeableObjData, (uid) =>
         {
-            OnBuildingTouchUp(placeableObj);
+            return TryMovePlaceableObjToDropPosition(placeableObj);
         });
         placeableObj.transform.localPosition = localPos;
         placeableObj.transform.localRotation = Quaternion.identity;
     }
 
-    private void OnBuildingTouchUp(PlaceableObj placeableObj)
+    private bool TryMovePlaceableObjToDropPosition(PlaceableObj placeableObj)
     {
-        // Check building pos
-        if (TryWorldToGridPosition(placeableObj.transform.position, out var gridPos))
+        if (!TryWorldToGridPosition(placeableObj.transform.position, out var gridPos))
         {
-            UserDataManager.Instance.MovePlaceableObj(placeableObj.Uid, gridPos);
+            return false;
         }
+        return UserDataManager.Instance.TryMovePlaceableObj(placeableObj.Uid, gridPos);
     }
 
     public void ChangeFloorTile(Vector2Int gridPos)

@@ -226,6 +226,11 @@ public sealed class UserData : IDtoConvertible<UserDataDto>
         {
             return null;
         }
+        bool hasUnavailableTile = tileDatas.Any(item => !item.IsUnlocked || item.IsOccupied);
+        if (hasUnavailableTile)
+        {
+            return null;
+        }
 
         var furnitureData = DataManager.Instance.GetFurnitureData(tid);
         if (furnitureData == null)
@@ -280,6 +285,6 @@ public sealed class UserData : IDtoConvertible<UserDataDto>
         {
             targetTileData.FurnitureUid = placeableUid;
         }
-        return true;   
+        return true;
     }
 }
