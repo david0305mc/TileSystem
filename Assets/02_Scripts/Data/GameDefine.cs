@@ -1,4 +1,4 @@
-using UnityEngine;
+
 
 public static class GameDefine
 {
@@ -33,4 +33,9 @@ public enum GameMode
 {
     Normal,
     Edit
+}
+public enum EditMode
+{
+    Normal,
+    Floor,
 }

@@ -4,19 +4,37 @@ using R3;
 
 public class GameManager : SingletonMono<GameManager>
 {
-    private readonly ReactiveProperty<global::GameMode> _gameMode = new(global::GameMode.Normal);
-    public ReactiveProperty<global::GameMode> GameMode => _gameMode;
+    private readonly ReactiveProperty<GameMode> _gameMode = new(global::GameMode.Normal);
+    public ReactiveProperty<GameMode> GameMode => _gameMode;
+
+    private readonly ReactiveProperty<EditMode> _editMode = new(global::EditMode.Normal);
+    public ReactiveProperty<EditMode> EditMode => _editMode;
+    
 
     private bool _isStartingGame;
 
     public void EnterEditMode()
     {
         _gameMode.Value = global::GameMode.Edit;
+        _editMode.Value = global::EditMode.Normal;
     }
 
     public void CancelEditMode()
     {
         _gameMode.Value = global::GameMode.Normal;
+        _editMode.Value = global::EditMode.Normal;
+    }
+
+    public void ToggleEditMode()
+    {
+        if (_editMode.Value == global::EditMode.Normal)
+        {
+            _editMode.Value = global::EditMode.Floor;
+        }
+        else
+        {
+            _editMode.Value = global::EditMode.Normal;
+        }
     }
 
     public async UniTask StartGame()

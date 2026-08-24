@@ -4,6 +4,7 @@ using R3;
 public class UIMain : SingletonMono<UIMain>
 {
     [SerializeField] private Button button;
+    [SerializeField] private Button toggleEditModeButton;
 
     protected override void Awake()
     {
@@ -14,5 +15,10 @@ public class UIMain : SingletonMono<UIMain>
 
             PopupManager.Instance.ShowPopup<ObjectInstallTestPopup, Unit>();
         });
+        toggleEditModeButton.onClick.AddListener(() =>
+        {
+            GameManager.Instance.ToggleEditMode();
+        });
+        
     }
 }
