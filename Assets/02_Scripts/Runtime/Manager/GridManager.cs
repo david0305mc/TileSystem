@@ -177,7 +177,7 @@ public class GridManager : SingletonMono<GridManager>
         tileObj.transform.localRotation = Quaternion.identity;
         tileObj.Initialize(gridPos, _defaultFloorSprite, () =>
         {
-            ChangeFloorTile(gridPos);
+            // ChangeFloorTile(gridPos);
         });
         _floorTileObjs[gridPos.x, gridPos.y] = tileObj;
     }
