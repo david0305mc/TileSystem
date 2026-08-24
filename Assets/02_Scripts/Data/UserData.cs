@@ -76,9 +76,7 @@ public sealed class UserData : IDtoConvertible<UserDataDto>
         DataMapperUtil.ApplyDtoDictionary(
             PlaceableObjs, dto.Placeables, dtoValue =>
             {
-                var data = new PlaceableObjData();
-                data.ApplyDto(dtoValue);
-                return data;
+                return new PlaceableObjData(dtoValue);
             }
         );
 
@@ -194,14 +192,13 @@ public sealed class UserData : IDtoConvertible<UserDataDto>
         }
 
         long uid = GeneratePersistentUid();
-        var placeableObjData = new PlaceableObjData
+        var placeableObjData = new PlaceableObjData(new PlaceableObjDataDto()
         {
             Uid = uid,
             TableID = tid,
             GridX = gridX,
             GridY = gridY
-        };
-
+        });
         PlaceableObjs.Add(uid, placeableObjData);
         return placeableObjData;
     }

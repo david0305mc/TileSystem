@@ -78,12 +78,19 @@ public sealed class PlaceableObjData : IDtoConvertible<PlaceableObjDataDto>
     public int GridX;
     public int GridY;
 
+    public DataManager.Furniture TableData;
+    public PlaceableObjData(PlaceableObjDataDto dto)
+    {
+        ApplyDto(dto);
+    }
+
     public void ApplyDto(PlaceableObjDataDto dto)
     {
         Uid = dto.Uid;
         TableID = dto.TableID;
         GridX = dto.GridX;
         GridY = dto.GridY;
+        TableData = DataManager.Instance.GetFurnitureData(TableID);
     }
 
     public PlaceableObjDataDto ToDto()
