@@ -10,8 +10,8 @@ GameObject:
   m_Component:
   - component: {fileID: 760899261717791161}
   - component: {fileID: 6140168273656403052}
-  - component: {fileID: -5850478642275521821}
   - component: {fileID: 6404620310911643539}
+  - component: {fileID: 1903846981461855781}
   m_Layer: 6
   m_Name: PlaceableObj
   m_TagString: Untagged
@@ -93,8 +93,22 @@ SpriteRenderer:
   m_SpriteTileMode: 0
   m_WasSpriteAssigned: 1
   m_SpriteSortPoint: 0
---- !u!60 &-5850478642275521821
-PolygonCollider2D:
+--- !u!114 &6404620310911643539
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 653044516748939779}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 9bcc4d95f246c8b4592d9a68b08cb956, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::PlaceableObj
+  _snapDistance: 0.5
+  spriteRenderer: {fileID: 6140168273656403052}
+--- !u!61 &1903846981461855781
+BoxCollider2D:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
@@ -127,34 +141,15 @@ PolygonCollider2D:
   m_UsedByEffector: 0
   m_CompositeOperation: 0
   m_CompositeOrder: 0
-  m_Offset: {x: 0, y: 0}
+  m_Offset: {x: 0, y: 0.22187498}
   m_SpriteTilingProperty:
     border: {x: 0, y: 0, z: 0, w: 0}
-    pivot: {x: 0.5, y: 0.5}
+    pivot: {x: 0.5, y: 0.25}
     oldSize: {x: 1.0125, y: 0.8875}
     newSize: {x: 1, y: 1}
     adaptiveTilingThreshold: 0.5
     drawMode: 0
     adaptiveTiling: 0
   m_AutoTiling: 0
-  m_Points:
-    m_Paths:
-    - - {x: 0, y: 0.25}
-      - {x: 0.5, y: 0}
-      - {x: 0, y: -0.25}
-      - {x: -0.5, y: 0}
-  m_UseDelaunayMesh: 1
---- !u!114 &6404620310911643539
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 653044516748939779}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 9bcc4d95f246c8b4592d9a68b08cb956, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::PlaceableObj
-  _snapDistance: 0.5
-  spriteRenderer: {fileID: 6140168273656403052}
+  m_Size: {x: 1.0125, y: 0.8875}
+  m_EdgeRadius: 0
