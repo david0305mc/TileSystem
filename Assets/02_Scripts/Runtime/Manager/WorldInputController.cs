@@ -3,6 +3,7 @@ using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.InputSystem;
 using R3;
+using System.Linq;
 
 public class WorldInputController : MonoBehaviour
 {
@@ -242,16 +243,45 @@ public class WorldInputController : MonoBehaviour
     {
         Vector2 worldPosition = ScreenToWorldPosition(screenPosition);
 
-        Collider2D collider = Physics2D.OverlapPoint(
-            worldPosition,
-            _interactableLayer
-        );
+        var hit = Physics2D.OverlapPointAll(worldPosition, _interactableLayer)
+            .Select(collider =>
+            {
+                collider.TryGetComponent(out IPointerInteractable interactable);
+                collider.TryGetComponent(out Renderer renderer);
+                return (interactable, renderer, collider.transform);
+            })
+            .Where(candidate => candidate.interactable != null)
+            .OrderByDescending(candidate => GetSortingLayerValue(candidate.renderer))
+            .ThenByDescending(candidate => candidate.renderer != null
+                ? candidate.renderer.sortingOrder
+                : int.MinValue)
+            .ThenBy(candidate => GetSortPositionY(candidate.renderer, candidate.transform))
+            .FirstOrDefault();
 
-        if (collider == null)
-            return null;
+        return hit.interactable;
+    }
 
-        collider.TryGetComponent(out IPointerInteractable interactable);
-        return interactable;
+    private static int GetSortingLayerValue(Renderer renderer)
+    {
+        return renderer != null
+            ? SortingLayer.GetLayerValueFromID(renderer.sortingLayerID)
+            : int.MinValue;
+    }
+
+    private static float GetSortPositionY(Renderer renderer, Transform fallbackTransform)
+    {
+        if (renderer == null)
+        {
+            return fallbackTransform.position.y;
+        }
+
+        if (renderer is SpriteRenderer spriteRenderer &&
+            spriteRenderer.spriteSortPoint == SpriteSortPoint.Pivot)
+        {
+            return spriteRenderer.transform.position.y;
+        }
+
+        return renderer.bounds.center.y;
     }
 
     private Vector2 ScreenToWorldPosition(Vector2 screenPosition)
