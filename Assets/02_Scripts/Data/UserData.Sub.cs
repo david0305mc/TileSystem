@@ -78,6 +78,8 @@ public sealed class PlaceableObjData : IDtoConvertible<PlaceableObjDataDto>
     public int GridX;
     public int GridY;
 
+    public bool IsReserved { get; private set; }
+    public bool IsOccupied { get; private set; }
     public DataManager.Furniture TableData;
     public PlaceableObjData(PlaceableObjDataDto dto)
     {

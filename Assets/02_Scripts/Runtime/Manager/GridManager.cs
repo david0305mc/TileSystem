@@ -1,5 +1,6 @@
 
 using System.Collections.Generic;
+using Cysharp.Threading.Tasks;
 using UnityEngine;
 using UnityEngine.InputSystem;
 
@@ -53,7 +54,22 @@ public class GridManager : SingletonMono<GridManager>
         CreateFloorTileObjs();
         GeneratePlaceableObjsFromUserData();
         GenerateNpcRandom();
+        RunSeatManage().Forget();
     }
+
+    private async UniTask RunSeatManage()
+    {
+        await UniTask.WaitForSeconds(3f);
+        while (true)
+        {
+            if (UserDataManager.Instance.User.TryFindEmptyChair(out var chair))
+            {
+                
+            }
+            await UniTask.WaitForSeconds(0.1f);
+        }
+    }
+
     private void GeneratePlaceableObjsFromUserData()
     {
         foreach (var obj in UserDataManager.Instance.User.PlaceableObjs)

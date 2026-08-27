@@ -293,4 +293,20 @@ public sealed class UserData : IDtoConvertible<UserDataDto>
             item.IsUnlocked &&
             (!item.IsOccupied || item.FurnitureUid == ignoredFurnitureUid));
     }
+    public bool TryFindEmptyChair(out PlaceableObjData chair)
+    {
+        foreach (var placeableObj in PlaceableObjs.Values)
+        {
+            if (placeableObj.TableData.furnituretype == FURNITURETYPE.CHAIR &&
+                !placeableObj.IsOccupied &&
+                !placeableObj.IsReserved)
+            {
+                chair = placeableObj;
+                return true;
+            }
+        }
+
+        chair = default;
+        return false;
+    }
 }
