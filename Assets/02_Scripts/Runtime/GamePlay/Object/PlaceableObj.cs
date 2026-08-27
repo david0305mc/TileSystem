@@ -10,6 +10,8 @@ public class PlaceableObj : MonoBehaviour, IPointerInteractable
     private System.Func<long, bool> _pointUpAction;
     private PlaceableObjData _placeableObjData;
     public long Uid => _placeableObjData.Uid;
+    public Vector2Int FootprintSize { get; private set; } = Vector2Int.one;
+    
 
     public void OnClick()
     {
@@ -21,6 +23,7 @@ public class PlaceableObj : MonoBehaviour, IPointerInteractable
         _pointUpAction = pointUpAction;
         var tableData = DataManager.Instance.GetFurnitureData(placeableObjData.TableID);
         spriteRenderer.sprite = ResourceManager.Instance.GetSpriteFromAtlas(tableData.spritepath);
+        FootprintSize = new Vector2Int(tableData.sizex, tableData.sizey);
     }
 
     public void OnPointerDown(Vector2 worldPosition)
@@ -61,26 +64,23 @@ public class PlaceableObj : MonoBehaviour, IPointerInteractable
         var gridManager = GridManager.Instance;
         var currentPosition = (Vector2)transform.position;
         var nearestDistanceSqr = float.MaxValue;
+        var maxGridX = GameDefine.GridWidth - FootprintSize.x;
+        var maxGridY = GameDefine.GridHeight - FootprintSize.y;
 
-        for (int x = 0; x < GameDefine.GridWidth; x++)
+        for (int x = 0; x <= maxGridX; x++)
         {
-            for (int y = 0; y < GameDefine.GridHeight; y++)
+            for (int y = 0; y <= maxGridY; y++)
             {
-                var floorView = gridManager.GetFloorView(new Vector2Int(x, y));
-                if (floorView == null)
-                {
-                    continue;
-                }
-
-                var floorPosition = floorView.transform.position;
-                var distanceSqr = ((Vector2)floorPosition - currentPosition).sqrMagnitude;
+                Vector3 tilePos = gridManager.GridToWorldPosition(new Vector2Int(x, y), FootprintSize);
+                
+                var distanceSqr = ((Vector2)tilePos - currentPosition).sqrMagnitude;
                 if (distanceSqr >= nearestDistanceSqr)
                 {
                     continue;
                 }
 
                 nearestDistanceSqr = distanceSqr;
-                nearestWorldPos = new Vector3(floorPosition.x, floorPosition.y, transform.position.z);
+                nearestWorldPos = new Vector3(tilePos.x, tilePos.y, transform.position.z);
             }
         }
 

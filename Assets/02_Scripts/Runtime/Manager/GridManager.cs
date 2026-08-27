@@ -198,7 +198,7 @@ public class GridManager : SingletonMono<GridManager>
 
     private bool TryMovePlaceableObjToDropPosition(PlaceableObj placeableObj)
     {
-        if (!TryWorldToGridPosition(placeableObj.transform.position, out var gridPos))
+        if (!TryWorldToGridPosition(placeableObj.transform.position, placeableObj.FootprintSize, out var gridPos))
         {
             return false;
         }
@@ -250,8 +250,8 @@ public class GridManager : SingletonMono<GridManager>
     {
         worldPath = null;
 
-        if (!TryWorldToGridPosition(startWorldPosition, out var start) ||
-            !TryWorldToGridPosition(targetWorldPosition, out var target) ||
+        if (!TryWorldToGridPosition(startWorldPosition, Vector2Int.one, out var start) ||
+            !TryWorldToGridPosition(targetWorldPosition, Vector2Int.one, out var target) ||
             !TryFindPath(start, target, out var gridPath))
         {
             return false;
@@ -270,8 +270,11 @@ public class GridManager : SingletonMono<GridManager>
     {
         return _gridRoot.TransformPoint(GridToWorld(gridPosition));
     }
-
-    public bool TryWorldToGridPosition(Vector3 worldPosition, out Vector2Int gridPosition)
+    public Vector3 GridToWorldPosition(Vector2Int gridPosition, Vector2Int footprintSize)
+    {
+        return _gridRoot.TransformPoint(GridToWorld(gridPosition, footprintSize));
+    }
+    public bool TryWorldToGridPosition(Vector3 worldPosition, Vector2Int footprintSize, out Vector2Int gridPosition)
     {
         gridPosition = default;
 
@@ -283,6 +286,7 @@ public class GridManager : SingletonMono<GridManager>
         }
 
         var localPosition = _gridRoot.InverseTransformPoint(worldPosition);
+        localPosition -= GetFootprintCenterOffset(footprintSize);
         var gridX = localPosition.x / _tileWidth + localPosition.y / _tileHeight;
         var gridY = localPosition.y / _tileHeight - localPosition.x / _tileWidth;
         var nearestPosition = new Vector2Int(
@@ -326,4 +330,14 @@ public class GridManager : SingletonMono<GridManager>
     {
         return GridUtil.GridToWorld(gridPosition, _tileWidth, _tileHeight);
     }
+    private Vector3 GridToWorld(Vector2Int gridPosition, Vector2Int footprintSize)
+    {
+        return GridUtil.GridToWorld(gridPosition, _tileWidth, _tileHeight) + GetFootprintCenterOffset(footprintSize);
+    }
+    private Vector3 GetFootprintCenterOffset(Vector2Int footprintSize)
+    {
+        var farthestTileOffset = footprintSize - Vector2Int.one;
+        return GridUtil.GridToWorld(farthestTileOffset, _tileWidth, _tileHeight) * 0.5f;
+    }
+
 }
