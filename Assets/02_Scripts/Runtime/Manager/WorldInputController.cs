@@ -26,6 +26,7 @@ public class WorldInputController : MonoBehaviour
     private float _dragVisualOffset = 100f;
 
     private Camera WorldCamera => _cameraController.Camera;
+    private GridManager _gridManager;
 
     void Start()
     {
@@ -49,6 +50,11 @@ public class WorldInputController : MonoBehaviour
             }
 
         }).AddTo(gameObject);
+        if (GridManager.Instance != null)
+        {
+            _gridManager = GridManager.Instance;
+            _gridManager.PreviewTargetChanged += PreviewTargetChanged;
+        }
     }
 
     private void Update()
@@ -59,6 +65,17 @@ public class WorldInputController : MonoBehaviour
         }
 
         HandleMouseInput();
+    }
+    void OnDestroy()
+    {
+        if (_gridManager != null)
+        {
+            _gridManager.PreviewTargetChanged -= PreviewTargetChanged;
+        }
+    }
+    private void PreviewTargetChanged(Transform previewObj)
+    {
+        _itemPlacementUI?.SetTarget(previewObj, WorldCamera);
     }
 
     private bool HandleTouchInput()

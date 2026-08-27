@@ -29,6 +29,7 @@ public class GridManager : SingletonMono<GridManager>
 
     public AStarPathfinder Pathfinder => _pathfinder;
     public bool HasPreviewObj => _previewObj != null;
+    public event System.Action<Transform> PreviewTargetChanged;
 
     void Start()
     {
@@ -214,7 +215,7 @@ public class GridManager : SingletonMono<GridManager>
         _previewObj.InitializePreview(furnitureId, TryMovePreviewObjToDropPosition);
         _previewObj.transform.localPosition = GridToWorld(gridPosition, _previewObj.FootprintSize);
         _previewObj.transform.localRotation = Quaternion.identity;
-
+        PreviewTargetChanged?.Invoke(_previewObj.transform);
         if (GameManager.HasInstance)
         {
             GameManager.Instance.EnterEditMode();
@@ -260,6 +261,10 @@ public class GridManager : SingletonMono<GridManager>
         _previewObj = null;
         _previewFurnitureId = 0;
         _previewGridPosition = default;
+        if (_previewObj != null)
+        {
+            PreviewTargetChanged?.Invoke(null);
+        }
     }
 
     private bool TryFindPreviewStartGridPosition(int furnitureId, out Vector2Int gridPosition)
