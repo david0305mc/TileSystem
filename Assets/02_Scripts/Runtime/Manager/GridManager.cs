@@ -29,6 +29,13 @@ public class GridManager : SingletonMono<GridManager>
 
     public AStarPathfinder Pathfinder => _pathfinder;
     public bool HasPreviewObj => _previewObj != null;
+
+    public bool TryGetPreviewObj(out PlaceableObj placeableObj)
+    {
+        placeableObj = _previewObj;
+        return placeableObj != null;
+    }
+
     public event System.Action<Transform> PreviewTargetChanged;
 
     void Start()

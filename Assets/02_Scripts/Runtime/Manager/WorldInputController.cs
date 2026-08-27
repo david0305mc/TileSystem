@@ -156,7 +156,14 @@ public class WorldInputController : MonoBehaviour
         _pointerDownPosition = screenPosition;
         _pointerDownTime = Time.unscaledTime;
 
-        _pressedObject = FindInteractableObject(screenPosition);
+        if (_gridManager != null && _gridManager.TryGetPreviewObj(out var placeableObj))
+        {
+            _pressedObject = placeableObj;
+        }
+        else
+        {
+            _pressedObject = FindInteractableObject(screenPosition);
+        }
         _cameraController.BeginDrag(screenPosition);
 
         if (_pressedObject != null)
