@@ -11,7 +11,7 @@ public partial class DataManager : Singleton<DataManager> {
 	public partial class Furniture {
 		public int id;
 		public string namekey;
-		public string furnituretype;
+		public FURNITURETYPE furnituretype;
 		public string spritepath;
 		public int sizex;
 		public int sizey;
