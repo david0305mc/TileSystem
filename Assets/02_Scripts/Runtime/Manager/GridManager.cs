@@ -10,6 +10,7 @@ public class GridManager : SingletonMono<GridManager>
     [SerializeField] private float _tileWidth = 1f;
     [SerializeField] private float _tileHeight = 0.5f;
 
+    [SerializeField, Min(0f)] private float _snapDistance = 0.5f;
     [Header("References")]
     [SerializeField] private FloorTileObj _floorPrefab;
     [SerializeField] private PlaceableObj _placeableObjPrefab;
@@ -188,21 +189,62 @@ public class GridManager : SingletonMono<GridManager>
         var localPos = GridToWorld(gridPos, new Vector2Int(placeableObjData.TableData.sizex, placeableObjData.TableData.sizey));
 
         PlaceableObj placeableObj = Lean.Pool.LeanPool.Spawn(_placeableObjPrefab, _gridRoot);
-        placeableObj.Initialize(placeableObjData, (uid) =>
-        {
-            return TryMovePlaceableObjToDropPosition(placeableObj);
-        });
+        placeableObj.Initialize(placeableObjData, TryMovePlaceableObjToDropPosition);
         placeableObj.transform.localPosition = localPos;
         placeableObj.transform.localRotation = Quaternion.identity;
     }
 
-    private bool TryMovePlaceableObjToDropPosition(PlaceableObj placeableObj)
+    private bool TryGetNearestGridPosition(Vector3 currentWorldPosition, Vector2Int footprintSize, out Vector2Int nearestGridPosition, out Vector3 nearestWorldPosition)
     {
-        if (!TryWorldToGridPosition(placeableObj.transform.position, placeableObj.FootprintSize, out var gridPos))
+        nearestGridPosition = default;
+        nearestWorldPosition = default;
+
+        var currentPosition = (Vector2)currentWorldPosition;
+        var nearestDistanceSqr = float.MaxValue;
+        var maxGridX = GameDefine.GridWidth - footprintSize.x;
+        var maxGridY = GameDefine.GridHeight - footprintSize.y;
+
+        for (int x = 0; x <= maxGridX; x++)
+        {
+            for (int y = 0; y <= maxGridY; y++)
+            {
+                var gridPosition = new Vector2Int(x, y);
+                Vector3 tilePos = GridToWorldPosition(gridPosition, footprintSize);
+
+                var distanceSqr = ((Vector2)tilePos - currentPosition).sqrMagnitude;
+                if (distanceSqr >= nearestDistanceSqr)
+                {
+                    continue;
+                }
+
+                nearestDistanceSqr = distanceSqr;
+                nearestGridPosition = gridPosition;
+                nearestWorldPosition = new Vector3(tilePos.x, tilePos.y, currentWorldPosition.z);
+            }
+        }
+
+        return nearestDistanceSqr <= _snapDistance * _snapDistance;
+    }
+
+    private bool TryMovePlaceableObjToDropPosition(long uid, Vector3 dropWorldPosition, out Vector3 snappedWorldPosition)
+    {
+        snappedWorldPosition = default;
+
+        if (!UserDataManager.Instance.User.TryGetPlaceableObjData(uid, out var placeableObjData))
         {
             return false;
         }
-        return UserDataManager.Instance.TryMovePlaceableObj(placeableObj.Uid, gridPos);
+
+        var footprintSize = new Vector2Int(
+            placeableObjData.TableData.sizex,
+            placeableObjData.TableData.sizey);
+
+        if (!TryGetNearestGridPosition(dropWorldPosition, footprintSize, out var nearestGridPosition, out snappedWorldPosition))
+        {
+            return false;
+        }
+
+        return UserDataManager.Instance.TryMovePlaceableObj(uid, nearestGridPosition);
     }
 
     public void ChangeFloorTile(Vector2Int gridPos)

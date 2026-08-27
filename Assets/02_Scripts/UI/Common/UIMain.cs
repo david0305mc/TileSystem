@@ -13,6 +13,11 @@ public class UIMain : SingletonMono<UIMain>
         {
             // UserDataManager.Instance.AddGold(1);
 
+            if (PopupManager.Instance.IsOnStack<ObjectInstallTestPopup>())
+            {
+                return;
+            }
+
             PopupManager.Instance.ShowPopup<ObjectInstallTestPopup, Unit>();
         });
         toggleEditModeButton.onClick.AddListener(() =>
