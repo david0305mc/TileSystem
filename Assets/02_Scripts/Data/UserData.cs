@@ -222,12 +222,7 @@ public sealed class UserData : IDtoConvertible<UserDataDto>
     }
     public PlaceableObjData CreatePlaceableObj(int tid, int gridX, int gridY)
     {
-        if (!TryGetPlaceableTiles(tid, gridX, gridY, out var tileDatas))
-        {
-            return null;
-        }
-        bool hasUnavailableTile = tileDatas.Any(item => !item.IsUnlocked || item.IsOccupied);
-        if (hasUnavailableTile)
+        if (!TryGetAvailablePlaceableTiles(tid, new Vector2Int(gridX, gridY), 0, out var tileDatas))
         {
             return null;
         }
@@ -258,13 +253,7 @@ public sealed class UserData : IDtoConvertible<UserDataDto>
         {
             return false;
         }
-        if (!TryGetPlaceableTiles(placeableObjData.TableID, targetGridPos.x, targetGridPos.y, out var targetTiles))
-        {
-            return false;
-        }
-
-        bool hasUnavailableTile = targetTiles.Any(item => !item.IsUnlocked || (item.FurnitureUid != placeableUid && item.IsOccupied));
-        if (hasUnavailableTile)
+        if (!TryGetAvailablePlaceableTiles(placeableObjData.TableID, targetGridPos, placeableUid, out var targetTiles))
         {
             return false;
         }
@@ -286,5 +275,22 @@ public sealed class UserData : IDtoConvertible<UserDataDto>
             targetTileData.FurnitureUid = placeableUid;
         }
         return true;
+    }
+
+    public bool CanPlaceFurniture(int furnitureId, Vector2Int gridPosition, long ignoredFurnitureUid = 0)
+    {
+        return TryGetAvailablePlaceableTiles(furnitureId, gridPosition, ignoredFurnitureUid, out _);
+    }
+
+    private bool TryGetAvailablePlaceableTiles(int furnitureId, Vector2Int gridPosition, long ignoredFurnitureUid, out List<TileData> tiles)
+    {
+        if (!TryGetPlaceableTiles(furnitureId, gridPosition.x, gridPosition.y, out tiles))
+        {
+            return false;
+        }
+
+        return tiles.All(item =>
+            item.IsUnlocked &&
+            (!item.IsOccupied || item.FurnitureUid == ignoredFurnitureUid));
     }
 }

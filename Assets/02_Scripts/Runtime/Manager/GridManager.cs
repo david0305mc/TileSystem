@@ -23,8 +23,12 @@ public class GridManager : SingletonMono<GridManager>
     private FloorTileObj[,] _floorTileObjs;
     private AStarPathfinder _pathfinder;
     private Camera _mainCamera;
+    private PlaceableObj _previewObj;
+    private int _previewFurnitureId;
+    private Vector2Int _previewGridPosition;
 
     public AStarPathfinder Pathfinder => _pathfinder;
+    public bool HasPreviewObj => _previewObj != null;
 
     void Start()
     {
@@ -194,6 +198,117 @@ public class GridManager : SingletonMono<GridManager>
         placeableObj.transform.localRotation = Quaternion.identity;
     }
 
+    public bool CreatePreviewObj(int furnitureId)
+    {
+        var furnitureData = DataManager.Instance.GetFurnitureData(furnitureId);
+        if (furnitureData == null || !TryFindPreviewStartGridPosition(furnitureId, out var gridPosition))
+        {
+            return false;
+        }
+
+        CancelPreviewPlacement();
+
+        _previewFurnitureId = furnitureId;
+        _previewGridPosition = gridPosition;
+        _previewObj = Lean.Pool.LeanPool.Spawn(_placeableObjPrefab, _gridRoot);
+        _previewObj.InitializePreview(furnitureId, TryMovePreviewObjToDropPosition);
+        _previewObj.transform.localPosition = GridToWorld(gridPosition, _previewObj.FootprintSize);
+        _previewObj.transform.localRotation = Quaternion.identity;
+
+        if (GameManager.HasInstance)
+        {
+            GameManager.Instance.EnterEditMode();
+        }
+
+        return true;
+    }
+
+    public bool ConfirmPreviewPlacement()
+    {
+        if (_previewObj == null)
+        {
+            return false;
+        }
+
+        var placeableObjData = UserDataManager.Instance.CreatePlaceableObj(
+            _previewFurnitureId,
+            _previewGridPosition.x,
+            _previewGridPosition.y);
+        if (placeableObjData == null)
+        {
+            return false;
+        }
+
+        var placeableObj = _previewObj;
+        ClearPreviewState();
+        placeableObj.Initialize(placeableObjData, TryMovePlaceableObjToDropPosition);
+        return true;
+    }
+
+    public void CancelPreviewPlacement()
+    {
+        if (_previewObj != null)
+        {
+            Lean.Pool.LeanPool.Despawn(_previewObj);
+        }
+
+        ClearPreviewState();
+    }
+
+    private void ClearPreviewState()
+    {
+        _previewObj = null;
+        _previewFurnitureId = 0;
+        _previewGridPosition = default;
+    }
+
+    private bool TryFindPreviewStartGridPosition(int furnitureId, out Vector2Int gridPosition)
+    {
+        gridPosition = default;
+
+        var furnitureData = DataManager.Instance.GetFurnitureData(furnitureId);
+        if (furnitureData == null)
+        {
+            return false;
+        }
+
+        var footprintSize = new Vector2Int(
+            Mathf.Max(1, furnitureData.sizex),
+            Mathf.Max(1, furnitureData.sizey));
+        var maxGridX = GameDefine.GridWidth - footprintSize.x;
+        var maxGridY = GameDefine.GridHeight - footprintSize.y;
+        if (maxGridX < 0 || maxGridY < 0)
+        {
+            return false;
+        }
+
+        var preferredPosition = new Vector2Int(maxGridX / 2, maxGridY / 2);
+        var nearestDistanceSqr = int.MaxValue;
+
+        for (int x = 0; x <= maxGridX; x++)
+        {
+            for (int y = 0; y <= maxGridY; y++)
+            {
+                var candidate = new Vector2Int(x, y);
+                if (!UserDataManager.Instance.User.CanPlaceFurniture(furnitureId, candidate))
+                {
+                    continue;
+                }
+
+                var distanceSqr = (candidate - preferredPosition).sqrMagnitude;
+                if (distanceSqr >= nearestDistanceSqr)
+                {
+                    continue;
+                }
+
+                nearestDistanceSqr = distanceSqr;
+                gridPosition = candidate;
+            }
+        }
+
+        return nearestDistanceSqr != int.MaxValue;
+    }
+
     private bool TryGetNearestGridPosition(Vector3 currentWorldPosition, Vector2Int footprintSize, out Vector2Int nearestGridPosition, out Vector3 nearestWorldPosition)
     {
         nearestGridPosition = default;
@@ -226,6 +341,19 @@ public class GridManager : SingletonMono<GridManager>
         return nearestDistanceSqr <= _snapDistance * _snapDistance;
     }
 
+    private bool TryMovePreviewObjToDropPosition(Vector3 dropWorldPosition, out Vector3 snappedWorldPosition)
+    {
+        snappedWorldPosition = default;
+        if (_previewObj == null ||
+            !TryGetNearestGridPosition(dropWorldPosition, _previewObj.FootprintSize, out var nearestGridPosition, out snappedWorldPosition) ||
+            !UserDataManager.Instance.User.CanPlaceFurniture(_previewFurnitureId, nearestGridPosition))
+        {
+            return false;
+        }
+
+        _previewGridPosition = nearestGridPosition;
+        return true;
+    }
     private bool TryMovePlaceableObjToDropPosition(long uid, Vector3 dropWorldPosition, out Vector3 snappedWorldPosition)
     {
         snappedWorldPosition = default;
@@ -235,10 +363,7 @@ public class GridManager : SingletonMono<GridManager>
             return false;
         }
 
-        var footprintSize = new Vector2Int(
-            placeableObjData.TableData.sizex,
-            placeableObjData.TableData.sizey);
-
+        var footprintSize = new Vector2Int(placeableObjData.TableData.sizex, placeableObjData.TableData.sizey);
         if (!TryGetNearestGridPosition(dropWorldPosition, footprintSize, out var nearestGridPosition, out snappedWorldPosition))
         {
             return false;

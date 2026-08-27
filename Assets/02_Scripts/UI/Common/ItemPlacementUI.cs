@@ -4,6 +4,7 @@ using UnityEngine.UI;
 public class ItemPlacementUI : MonoBehaviour
 {
     [SerializeField] private RectTransform _root;
+    [SerializeField] private Button confirmPlacementButton;
     [SerializeField] private Button cancelEditModeButton;
 
     private Canvas _canvas;
@@ -13,14 +14,35 @@ public class ItemPlacementUI : MonoBehaviour
     private void Awake()
     {
         _canvas = GetComponentInParent<Canvas>();
+        confirmPlacementButton.onClick.AddListener(OnConfirmPlacementButtonClicked);
         cancelEditModeButton.onClick.AddListener(OnCancelEditModeButtonClicked);
     }
 
     private void OnDestroy()
     {
+        if (confirmPlacementButton != null)
+        {
+            confirmPlacementButton.onClick.RemoveListener(OnConfirmPlacementButtonClicked);
+        }
+
         if (cancelEditModeButton != null)
         {
             cancelEditModeButton.onClick.RemoveListener(OnCancelEditModeButtonClicked);
+        }
+    }
+
+    private void OnConfirmPlacementButtonClicked()
+    {
+        if (GridManager.HasInstance &&
+            GridManager.Instance.HasPreviewObj &&
+            !GridManager.Instance.ConfirmPreviewPlacement())
+        {
+            return;
+        }
+
+        if (GameManager.HasInstance)
+        {
+            GameManager.Instance.CancelEditMode();
         }
     }
 

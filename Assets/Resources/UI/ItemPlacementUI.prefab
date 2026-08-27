@@ -180,6 +180,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::ItemPlacementUI
   _root: {fileID: 7776015167775636335}
+  confirmPlacementButton: {fileID: 7361648144362759393}
   cancelEditModeButton: {fileID: 2518499545650244777}
 --- !u!1 &2898460821689977620
 GameObject:

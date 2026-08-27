@@ -21,6 +21,11 @@ public class GameManager : SingletonMono<GameManager>
 
     public void CancelEditMode()
     {
+        if (GridManager.HasInstance)
+        {
+            GridManager.Instance.CancelPreviewPlacement();
+        }
+
         _gameMode.Value = global::GameMode.Normal;
         _editMode.Value = global::EditMode.Normal;
     }

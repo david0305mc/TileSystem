@@ -3,13 +3,13 @@ using UnityEngine;
 public class PlaceableObj : MonoBehaviour, IPointerInteractable
 {
     public delegate bool TryDropAction(long uid, Vector3 dropWorldPosition, out Vector3 snappedWorldPosition);
+    public delegate bool TryPreviewDropAction(Vector3 dropWorldPosition, out Vector3 snappedWorldPosition);
 
     [SerializeField] private SpriteRenderer spriteRenderer;
 
     private Vector3 _positionBeforeDrag;
-    private TryDropAction _tryDropAction;
-    private PlaceableObjData _placeableObjData;
-    public long Uid => _placeableObjData.Uid;
+    private TryPreviewDropAction _tryDropAction;
+    public long Uid { get; private set; }
     public Vector2Int FootprintSize { get; private set; } = Vector2Int.one;
 
     public void OnClick()
@@ -19,11 +19,26 @@ public class PlaceableObj : MonoBehaviour, IPointerInteractable
 
     public void Initialize(PlaceableObjData placeableObjData, TryDropAction tryDropAction)
     {
-        _placeableObjData = placeableObjData;
+        Uid = placeableObjData.Uid;
+        _tryDropAction = (Vector3 dropWorldPosition, out Vector3 snappedWorldPosition) =>
+            tryDropAction(Uid, dropWorldPosition, out snappedWorldPosition);
+        InitializeVisual(placeableObjData.TableID);
+    }
+
+    public void InitializePreview(int furnitureId, TryPreviewDropAction tryDropAction)
+    {
+        Uid = 0;
         _tryDropAction = tryDropAction;
-        var tableData = DataManager.Instance.GetFurnitureData(placeableObjData.TableID);
+        InitializeVisual(furnitureId);
+    }
+
+    private void InitializeVisual(int furnitureId)
+    {
+        var tableData = DataManager.Instance.GetFurnitureData(furnitureId);
         spriteRenderer.sprite = ResourceManager.Instance.GetSpriteFromAtlas(tableData.spritepath);
-        FootprintSize = new Vector2Int(tableData.sizex, tableData.sizey);
+        FootprintSize = new Vector2Int(
+            Mathf.Max(1, tableData.sizex),
+            Mathf.Max(1, tableData.sizey));
     }
 
     public void OnPointerDown(Vector2 worldPosition)
@@ -38,7 +53,7 @@ public class PlaceableObj : MonoBehaviour, IPointerInteractable
 
     public void OnPointerUp()
     {
-        if (_tryDropAction != null && _tryDropAction.Invoke(Uid, transform.position, out var snappedWorldPosition))
+        if (_tryDropAction != null && _tryDropAction.Invoke(transform.position, out var snappedWorldPosition))
         {
             transform.position = snappedWorldPosition;
             return;

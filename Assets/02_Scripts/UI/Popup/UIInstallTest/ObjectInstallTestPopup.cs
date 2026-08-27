@@ -23,8 +23,14 @@ public class ObjectInstallTestPopup : PopupBase<Unit>
         cell.Bind(furnitures[index].id, OnCellClicked);
     }
 
-    private void OnCellClicked(int index)
+    private void OnCellClicked(int tid)
     {
-        Debug.Log($"touch {index}");
+        if (!GridManager.Instance.CreatePreviewObj(tid))
+        {
+            Debug.LogWarning($"Could not find an available position for furniture {tid}.");
+            return;
+        }
+
+        CloseAsync().Forget();
     }
 }
