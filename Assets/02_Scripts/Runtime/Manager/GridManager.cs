@@ -171,7 +171,7 @@ public class GridManager : SingletonMono<GridManager>
     }
     private void CreateFloorTileObj(Vector2Int gridPos)
     {
-        var localPos = GridToWorld(gridPos);
+        var localPos = GridToWorld(gridPos, Vector2Int.one);
         var tileObj = Instantiate(_floorPrefab, _floorRoot);
         tileObj.transform.localPosition = localPos;
         tileObj.transform.localRotation = Quaternion.identity;
@@ -185,7 +185,7 @@ public class GridManager : SingletonMono<GridManager>
     {
         UserDataManager.Instance.User.TryGetPlaceableObjData(uid, out var placeableObjData);
         var gridPos = new Vector2Int(placeableObjData.GridX, placeableObjData.GridY);
-        var localPos = GridToWorld(gridPos);
+        var localPos = GridToWorld(gridPos, new Vector2Int(placeableObjData.TableData.sizex, placeableObjData.TableData.sizey));
 
         PlaceableObj placeableObj = Lean.Pool.LeanPool.Spawn(_placeableObjPrefab, _gridRoot);
         placeableObj.Initialize(placeableObjData, (uid) =>
@@ -268,7 +268,7 @@ public class GridManager : SingletonMono<GridManager>
 
     public Vector3 GridToWorldPosition(Vector2Int gridPosition)
     {
-        return _gridRoot.TransformPoint(GridToWorld(gridPosition));
+        return _gridRoot.TransformPoint(GridToWorld(gridPosition, Vector2Int.one));
     }
     public Vector3 GridToWorldPosition(Vector2Int gridPosition, Vector2Int footprintSize)
     {
@@ -310,7 +310,7 @@ public class GridManager : SingletonMono<GridManager>
         }
 
         var npc = Lean.Pool.LeanPool.Spawn(_npcObjPrefab, _gridRoot);
-        npc.transform.localPosition = GridToWorld(gridPosition);
+        npc.transform.localPosition = GridToWorld(gridPosition, Vector2Int.one);
         npc.transform.localRotation = Quaternion.identity;
         npc.Initialize(gridPosition);
         return npc;
@@ -326,10 +326,6 @@ public class GridManager : SingletonMono<GridManager>
         return _floorTileObjs[position.x, position.y];
     }
 
-    private Vector3 GridToWorld(Vector2Int gridPosition)
-    {
-        return GridUtil.GridToWorld(gridPosition, _tileWidth, _tileHeight);
-    }
     private Vector3 GridToWorld(Vector2Int gridPosition, Vector2Int footprintSize)
     {
         return GridUtil.GridToWorld(gridPosition, _tileWidth, _tileHeight) + GetFootprintCenterOffset(footprintSize);
