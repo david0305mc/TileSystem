@@ -20,6 +20,9 @@ public class NpcObj : MonoBehaviour
     private static readonly string ThinkingState = nameof(NpcState.THINGKING);
 
 
+    [SerializeField] private Transform _hudAnchor;
+    public Transform HudAnchor => _hudAnchor;
+    public NpcHud NpcHud { get; set; }
     [SerializeField] private SkeletonAnimation skeletonAnimation;
 
     [Header("Appearance")]
@@ -104,13 +107,16 @@ public class NpcObj : MonoBehaviour
     private Vector2Int _targetGridPosition;
 
     public Vector2Int CurrentGridPosition { get; private set; }
-
+    private System.Action _showHud;
+    private System.Action _hideHud;
     public bool IsMoving =>
         _fsm != null &&
         _fsm.ActiveStateName == MovingState;
 
-    public void Initialize(Vector2Int gridPosition)
+    public void Initialize(Vector2Int gridPosition, System.Action showHud, System.Action hideHud)
     {
+        _showHud = showHud;
+        _hideHud = hideHud;
         Stop();
         RandomizeAppearance();
 
@@ -119,8 +125,7 @@ public class NpcObj : MonoBehaviour
 
         if (GridManager.HasInstance)
         {
-            transform.position =
-                GridManager.Instance.GridToWorldPosition(gridPosition);
+            transform.position = GridManager.Instance.GridToWorldPosition(gridPosition);
         }
 
         InitializeFsm();
@@ -226,6 +231,7 @@ public class NpcObj : MonoBehaviour
     private async UniTask ThinkingStateAsync(CancellationToken cancellationToken)
     {
         skeletonAnimation.AnimationName = "dance";
+        _showHud?.Invoke();
 
         await UniTask.WaitForSeconds(Random.Range(0.3f, 2f), cancellationToken: cancellationToken);
 
@@ -233,7 +239,7 @@ public class NpcObj : MonoBehaviour
         {
             return;
         }
-
+        _hideHud?.Invoke();
         RequestWaitingState();
     }
     private async UniTask MovingStateAsync(

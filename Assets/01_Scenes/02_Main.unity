@@ -614,6 +614,41 @@ Transform:
   - {fileID: 853770137}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!1 &449604224
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 449604225}
+  m_Layer: 0
+  m_Name: Root
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!224 &449604225
+RectTransform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 449604224}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 853770137}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+  m_AnchorMin: {x: 0, y: 0}
+  m_AnchorMax: {x: 1, y: 1}
+  m_AnchoredPosition: {x: 0, y: 0}
+  m_SizeDelta: {x: 0, y: 0}
+  m_Pivot: {x: 0.5, y: 0.5}
 --- !u!1001 &449658772
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -736,6 +771,7 @@ GameObject:
   - component: {fileID: 853770140}
   - component: {fileID: 853770139}
   - component: {fileID: 853770138}
+  - component: {fileID: 853770141}
   m_Layer: 0
   m_Name: OverHeadUIManager
   m_TagString: Untagged
@@ -754,7 +790,8 @@ RectTransform:
   m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 0, y: 0, z: 0}
   m_ConstrainProportionsScale: 0
-  m_Children: []
+  m_Children:
+  - {fileID: 449604225}
   m_Father: {fileID: 415851286}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
@@ -825,6 +862,21 @@ Canvas:
   m_SortingLayerID: 0
   m_SortingOrder: 0
   m_TargetDisplay: 0
+--- !u!114 &853770141
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 853770136}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 901423eabec5e5940b3e6f5faa79a3b3, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::OverHeadUIManager
+  _npcHud: {fileID: 6950764432391586355, guid: 487d18b90c6d438469470094b648ea47, type: 3}
+  _canvas: {fileID: 853770140}
+  _rootTransform: {fileID: 449604225}
 --- !u!1 &859525898
 GameObject:
   m_ObjectHideFlags: 0
@@ -1010,6 +1062,7 @@ MonoBehaviour:
   dontDestroyOnLoad: 0
   _npcObjPrefab: {fileID: 3553281859632518680, guid: 3313d758a10a91442b45a61d7cca5676, type: 3}
   _gridManager: {fileID: 1349782990}
+  _overHeadUIManager: {fileID: 853770141}
 --- !u!1 &961739749
 GameObject:
   m_ObjectHideFlags: 0

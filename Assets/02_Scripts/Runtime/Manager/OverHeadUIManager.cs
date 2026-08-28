@@ -1,22 +1,27 @@
+using Lean.Pool;
 using UnityEngine;
 
-public class OverHeadUIManager : SingletonMono<OverHeadUIManager>
+public class OverHeadUIManager : MonoBehaviour
 {
-
     [SerializeField] private NpcHud _npcHud;
-    protected override void Awake()
+    [SerializeField] private Canvas _canvas;
+    [SerializeField] private Transform _rootTransform;
+
+    private Camera _worldCamera;
+    void Start()
     {
-        base.Awake();
+        _worldCamera = Camera.main;
+    }
+    public NpcHud AttachNpcHud(NpcObj npcObj)
+    {
+        NpcHud npcHud = LeanPool.Spawn(_npcHud, _rootTransform);
+        npcHud.Bind(npcObj, _worldCamera);
+        return npcHud;
     }
 
-    public void AttachNpcHud()
+    public void DetachNpcHud(NpcHud npcHud)
     {
-        var npcHud = Lean.Pool.LeanPool.Spawn(_npcHud);
-    }
-
-    public void DetachNpcHud()
-    {
-        
+        LeanPool.Despawn(npcHud);
     }
 
 

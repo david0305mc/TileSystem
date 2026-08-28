@@ -4,6 +4,7 @@ public class RestaurantManager : SingletonMono<RestaurantManager>
 {
     [SerializeField] private NpcObj _npcObjPrefab;
     [SerializeField] private GridManager _gridManager;
+    [SerializeField] private OverHeadUIManager _overHeadUIManager;
 
     protected override void Awake()
     {
@@ -51,7 +52,13 @@ public class RestaurantManager : SingletonMono<RestaurantManager>
         var npc = Lean.Pool.LeanPool.Spawn(_npcObjPrefab, _gridManager.GridRoot);
         npc.transform.localPosition = _gridManager.GridToWorld(gridPosition, Vector2Int.one);
         npc.transform.localRotation = Quaternion.identity;
-        npc.Initialize(gridPosition);
+        npc.Initialize(gridPosition, ()=>
+        {
+            npc.NpcHud = _overHeadUIManager.AttachNpcHud(npc);
+        }, ()=>
+        {
+            _overHeadUIManager.DetachNpcHud(npc.NpcHud);
+        });
         return npc;
     }
 }
