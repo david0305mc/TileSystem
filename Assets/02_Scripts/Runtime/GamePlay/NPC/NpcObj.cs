@@ -229,7 +229,7 @@ public class NpcObj : MonoBehaviour
             return;
         }
 
-        TryMoveToRandomTarget();
+        RequestWanderState();
     }
     private async UniTask MovingToChairStateAsync(CancellationToken cancellationToken)
     {
@@ -245,8 +245,7 @@ public class NpcObj : MonoBehaviour
         _hideHud?.Invoke();
         RequestWaitingState();
     }
-    private async UniTask WanderingStateAsync(
-        CancellationToken cancellationToken)
+    private async UniTask WanderingStateAsync(CancellationToken cancellationToken)
     {
         if (_worldPath.Count == 0)
         {
@@ -256,8 +255,7 @@ public class NpcObj : MonoBehaviour
 
         _pathIndex = 0;
         skeletonAnimation.AnimationName = "walk";
-        float arrivalDistanceSqr =
-            _arrivalDistance * _arrivalDistance;
+        float arrivalDistanceSqr = _arrivalDistance * _arrivalDistance;
 
         while (_pathIndex < _worldPath.Count)
         {
@@ -279,19 +277,23 @@ public class NpcObj : MonoBehaviour
             _pathIndex++;
         }
 
-        OnMoveCompleted();
+        CurrentGridPosition = _targetGridPosition;
+
+        _worldPath.Clear();
+        _pathIndex = 0;
+
+        RequestMovingToChairState();
     }
     private void SetFlip(bool isLeft)
     {
         skeletonAnimation.Skeleton.ScaleX = isLeft ? -1f : 1f;
     }
 
-    private void TryMoveToRandomTarget()
+    private void RequestWanderState()
     {
         GridManager gridManager = GridManager.Instance;
 
-        Vector2Int targetGridPosition =
-            gridManager.GetRandomGridPos();
+        Vector2Int targetGridPosition = gridManager.GetRandomGridPos();
 
         // 현재 위치와 동일한 위치라면 다시 대기
         if (targetGridPosition == CurrentGridPosition)
@@ -300,9 +302,7 @@ public class NpcObj : MonoBehaviour
             return;
         }
 
-        Vector3 targetWorldPosition =
-            gridManager.GridToWorldPosition(targetGridPosition);
-
+        Vector3 targetWorldPosition = gridManager.GridToWorldPosition(targetGridPosition);
         if (!gridManager.TryFindWorldPath(
                 transform.position,
                 targetWorldPosition,
@@ -323,17 +323,7 @@ public class NpcObj : MonoBehaviour
         _fsm.RequestStateChange(WanderingState);
     }
 
-    private void OnMoveCompleted()
-    {
-        CurrentGridPosition = _targetGridPosition;
-
-        _worldPath.Clear();
-        _pathIndex = 0;
-
-        // RequestWaitingState();
-        RequestThikingState();
-    }
-    private void RequestThikingState()
+    private void RequestMovingToChairState()
     {
         _fsm?.RequestStateChange(MovingToChairState);
     }
