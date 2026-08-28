@@ -15,9 +15,10 @@ public class GridManager : SingletonMono<GridManager>
     [Header("References")]
     [SerializeField] private FloorTileObj _floorPrefab;
     [SerializeField] private PlaceableObj _placeableObjPrefab;
-    [SerializeField] private NpcObj _npcObjPrefab;
+    
     [SerializeField] private Transform _floorRoot;
     [SerializeField] private Transform _gridRoot;
+    public Transform GridRoot => _gridRoot;
     [SerializeField] private Sprite _defaultFloorSprite;
     [SerializeField] private Sprite _stoneFloorSprite;
 
@@ -53,50 +54,12 @@ public class GridManager : SingletonMono<GridManager>
 
         CreateFloorTileObjs();
         GeneratePlaceableObjsFromUserData();
-        GenerateNpcRandom();
-        RunSeatManage().Forget();
     }
-
-    private async UniTask RunSeatManage()
-    {
-        await UniTask.WaitForSeconds(3f);
-        while (true)
-        {
-            if (UserDataManager.Instance.User.TryFindEmptyChair(out var chair))
-            {
-                
-            }
-            await UniTask.WaitForSeconds(0.1f);
-        }
-    }
-
     private void GeneratePlaceableObjsFromUserData()
     {
         foreach (var obj in UserDataManager.Instance.User.PlaceableObjs)
         {
             CreateBuildingObj(obj.Key);
-        }
-    }
-
-    private void GenerateNpcRandom()
-    {
-        var attemptCount = 0;
-        var createdCount = 0;
-        while (createdCount < 10 && attemptCount++ < 100)
-        {
-            int x = Random.Range(0, GameDefine.GridWidth);
-            int y = Random.Range(0, GameDefine.GridHeight);
-            var gridPosition = new Vector2Int(x, y);
-
-            if (!IsWalkable(gridPosition))
-            {
-                continue;
-            }
-
-            var npcObj = CreateNpc(gridPosition);
-            // npcObj.MoveTo(GetRandomGridPos());
-
-            createdCount++;
         }
     }
 
@@ -497,20 +460,6 @@ public class GridManager : SingletonMono<GridManager>
         return true;
     }
 
-    public NpcObj CreateNpc(Vector2Int gridPosition)
-    {
-        if (_npcObjPrefab == null || !IsWalkable(gridPosition))
-        {
-            return null;
-        }
-
-        var npc = Lean.Pool.LeanPool.Spawn(_npcObjPrefab, _gridRoot);
-        npc.transform.localPosition = GridToWorld(gridPosition, Vector2Int.one);
-        npc.transform.localRotation = Quaternion.identity;
-        npc.Initialize(gridPosition);
-        return npc;
-    }
-
     public FloorTileObj GetFloorView(Vector2Int position)
     {
         if (!IsValidPosition(position))
@@ -521,7 +470,7 @@ public class GridManager : SingletonMono<GridManager>
         return _floorTileObjs[position.x, position.y];
     }
 
-    private Vector3 GridToWorld(Vector2Int gridPosition, Vector2Int footprintSize)
+    public Vector3 GridToWorld(Vector2Int gridPosition, Vector2Int footprintSize)
     {
         return GridUtil.GridToWorld(gridPosition, _tileWidth, _tileHeight) + GetFootprintCenterOffset(footprintSize);
     }
