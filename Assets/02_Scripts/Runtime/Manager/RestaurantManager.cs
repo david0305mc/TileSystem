@@ -52,12 +52,25 @@ public class RestaurantManager : SingletonMono<RestaurantManager>
         var npc = Lean.Pool.LeanPool.Spawn(_npcObjPrefab, _gridManager.GridRoot);
         npc.transform.localPosition = _gridManager.GridToWorld(gridPosition, Vector2Int.one);
         npc.transform.localRotation = Quaternion.identity;
-        npc.Initialize(gridPosition, ()=>
+        npc.Initialize(gridPosition, () =>
         {
+            if (npc.NpcHud != null)
+            {
+                return;
+            }
+
             npc.NpcHud = _overHeadUIManager.AttachNpcHud(npc);
-        }, ()=>
+        }, () =>
         {
-            _overHeadUIManager.DetachNpcHud(npc.NpcHud);
+            NpcHud npcHud = npc.NpcHud;
+
+            if (npcHud == null)
+            {
+                return;
+            }
+
+            npc.NpcHud = null;
+            _overHeadUIManager.DetachNpcHud(npcHud);
         });
         return npc;
     }
