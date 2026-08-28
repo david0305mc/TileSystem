@@ -10,14 +10,17 @@ public class NpcObj : MonoBehaviour
 {
     public enum NpcState
     {
-        WAITING,
-        MOVING,
-        THINGKING,
+        Idle,
+        Wandering,
+        MovingToChair,
+        Sitting,
+        Eating,
+        Exiting
     }
 
-    private static readonly string WaitingState = nameof(NpcState.WAITING);
-    private static readonly string MovingState = nameof(NpcState.MOVING);
-    private static readonly string ThinkingState = nameof(NpcState.THINGKING);
+    private static readonly string IdleState = nameof(NpcState.Idle);
+    private static readonly string WanderingState = nameof(NpcState.Wandering);
+    private static readonly string MovingToChairState = nameof(NpcState.MovingToChair);
 
 
     [SerializeField] private Transform _hudAnchor;
@@ -111,7 +114,7 @@ public class NpcObj : MonoBehaviour
     private System.Action _hideHud;
     public bool IsMoving =>
         _fsm != null &&
-        _fsm.ActiveStateName == MovingState;
+        _fsm.ActiveStateName == WanderingState;
 
     public void Initialize(Vector2Int gridPosition, System.Action showHud, System.Action hideHud)
     {
@@ -206,15 +209,15 @@ public class NpcObj : MonoBehaviour
 
         _fsm = new StateMachine();
 
-        _fsm.AddState(WaitingState, new UniTaskState(onEnterAsync: WaitingStateAsync));
-        _fsm.AddState(MovingState, new UniTaskState(onEnterAsync: MovingStateAsync));
-        _fsm.AddState(ThinkingState, new UniTaskState(onEnterAsync: ThinkingStateAsync));
+        _fsm.AddState(IdleState, new UniTaskState(onEnterAsync: IdleStateAsync));
+        _fsm.AddState(WanderingState, new UniTaskState(onEnterAsync: WanderingStateAsync));
+        _fsm.AddState(MovingToChairState, new UniTaskState(onEnterAsync: MovingToChairStateAsync));
 
-        _fsm.SetStartState(WaitingState);
+        _fsm.SetStartState(IdleState);
         _fsm.Init();
     }
 
-    private async UniTask WaitingStateAsync(
+    private async UniTask IdleStateAsync(
         CancellationToken cancellationToken)
     {
         skeletonAnimation.AnimationName = "idle";
@@ -228,7 +231,7 @@ public class NpcObj : MonoBehaviour
 
         TryMoveToRandomTarget();
     }
-    private async UniTask ThinkingStateAsync(CancellationToken cancellationToken)
+    private async UniTask MovingToChairStateAsync(CancellationToken cancellationToken)
     {
         skeletonAnimation.AnimationName = "dance";
         _showHud?.Invoke();
@@ -242,7 +245,7 @@ public class NpcObj : MonoBehaviour
         _hideHud?.Invoke();
         RequestWaitingState();
     }
-    private async UniTask MovingStateAsync(
+    private async UniTask WanderingStateAsync(
         CancellationToken cancellationToken)
     {
         if (_worldPath.Count == 0)
@@ -317,7 +320,7 @@ public class NpcObj : MonoBehaviour
         _targetGridPosition = targetGridPosition;
         _pathIndex = 0;
 
-        _fsm.RequestStateChange(MovingState);
+        _fsm.RequestStateChange(WanderingState);
     }
 
     private void OnMoveCompleted()
@@ -332,11 +335,11 @@ public class NpcObj : MonoBehaviour
     }
     private void RequestThikingState()
     {
-        _fsm?.RequestStateChange(ThinkingState);
+        _fsm?.RequestStateChange(MovingToChairState);
     }
     private void RequestWaitingState()
     {
-        _fsm?.RequestStateChange(WaitingState);
+        _fsm?.RequestStateChange(IdleState);
     }
 
     public void Stop()
@@ -346,7 +349,7 @@ public class NpcObj : MonoBehaviour
 
         if (_fsm != null)
         {
-            _fsm.RequestStateChange(WaitingState);
+            _fsm.RequestStateChange(IdleState);
         }
     }
 
