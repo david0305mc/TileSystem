@@ -243,13 +243,13 @@ public class NpcObj : MonoBehaviour
             return;
         }
         _hideHud?.Invoke();
-        RequestWaitingState();
+        RequestIdleState();
     }
     private async UniTask WanderingStateAsync(CancellationToken cancellationToken)
     {
         if (_worldPath.Count == 0)
         {
-            RequestWaitingState();
+            RequestIdleState();
             return;
         }
 
@@ -298,7 +298,7 @@ public class NpcObj : MonoBehaviour
         // 현재 위치와 동일한 위치라면 다시 대기
         if (targetGridPosition == CurrentGridPosition)
         {
-            RequestWaitingState();
+            RequestIdleState();
             return;
         }
 
@@ -310,7 +310,7 @@ public class NpcObj : MonoBehaviour
             path == null ||
             path.Count == 0)
         {
-            RequestWaitingState();
+            RequestIdleState();
             return;
         }
 
@@ -327,7 +327,7 @@ public class NpcObj : MonoBehaviour
     {
         _fsm?.RequestStateChange(MovingToChairState);
     }
-    private void RequestWaitingState()
+    private void RequestIdleState()
     {
         _fsm?.RequestStateChange(IdleState);
     }
