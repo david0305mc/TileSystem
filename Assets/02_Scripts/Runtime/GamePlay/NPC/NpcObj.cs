@@ -12,10 +12,12 @@ public class NpcObj : MonoBehaviour
     {
         WAITING,
         MOVING,
+        THINGKING,
     }
 
     private static readonly string WaitingState = nameof(NpcState.WAITING);
     private static readonly string MovingState = nameof(NpcState.MOVING);
+    private static readonly string ThinkingState = nameof(NpcState.THINGKING);
 
 
     [SerializeField] private SkeletonAnimation skeletonAnimation;
@@ -199,13 +201,9 @@ public class NpcObj : MonoBehaviour
 
         _fsm = new StateMachine();
 
-        _fsm.AddState(
-            WaitingState,
-            new UniTaskState(onEnterAsync: WaitingStateAsync));
-
-        _fsm.AddState(
-            MovingState,
-            new UniTaskState(onEnterAsync: MovingStateAsync));
+        _fsm.AddState(WaitingState, new UniTaskState(onEnterAsync: WaitingStateAsync));
+        _fsm.AddState(MovingState, new UniTaskState(onEnterAsync: MovingStateAsync));
+        _fsm.AddState(ThinkingState, new UniTaskState(onEnterAsync: ThinkingStateAsync));
 
         _fsm.SetStartState(WaitingState);
         _fsm.Init();
@@ -225,7 +223,19 @@ public class NpcObj : MonoBehaviour
 
         TryMoveToRandomTarget();
     }
+    private async UniTask ThinkingStateAsync(CancellationToken cancellationToken)
+    {
+        skeletonAnimation.AnimationName = "dance";
 
+        await UniTask.WaitForSeconds(Random.Range(0.3f, 2f), cancellationToken: cancellationToken);
+
+        if (cancellationToken.IsCancellationRequested)
+        {
+            return;
+        }
+
+        RequestWaitingState();
+    }
     private async UniTask MovingStateAsync(
         CancellationToken cancellationToken)
     {
@@ -269,12 +279,6 @@ public class NpcObj : MonoBehaviour
 
     private void TryMoveToRandomTarget()
     {
-        if (!GridManager.HasInstance)
-        {
-            RequestWaitingState();
-            return;
-        }
-
         GridManager gridManager = GridManager.Instance;
 
         Vector2Int targetGridPosition =
@@ -317,9 +321,13 @@ public class NpcObj : MonoBehaviour
         _worldPath.Clear();
         _pathIndex = 0;
 
-        RequestWaitingState();
+        // RequestWaitingState();
+        RequestThikingState();
     }
-
+    private void RequestThikingState()
+    {
+        _fsm?.RequestStateChange(ThinkingState);
+    }
     private void RequestWaitingState()
     {
         _fsm?.RequestStateChange(WaitingState);
