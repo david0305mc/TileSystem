@@ -50,6 +50,7 @@ public class RestaurantManager : SingletonMono<RestaurantManager>
         }
 
         var npc = Lean.Pool.LeanPool.Spawn(_npcObjPrefab, _gridManager.GridRoot);
+        
         npc.transform.localPosition = _gridManager.GridToWorld(gridPosition, Vector2Int.one);
         npc.transform.localRotation = Quaternion.identity;
         npc.Initialize(gridPosition, () =>
@@ -82,12 +83,19 @@ public class RestaurantManager : SingletonMono<RestaurantManager>
                 }
 
                 targetGrid = approachGrid;
+                UserDataManager.Instance.User.ReserveChair(chair.Uid, true);
                 return true;
             }
             else
             {
                 return false;
             }
+        }, () =>
+        {
+            
+        }, (uid) =>
+        {
+            UserDataManager.Instance.User.ReserveChair(uid, false);
         });
         return npc;
     }

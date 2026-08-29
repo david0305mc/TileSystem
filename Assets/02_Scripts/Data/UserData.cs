@@ -309,6 +309,17 @@ public sealed class UserData : IDtoConvertible<UserDataDto>
         chair = default;
         return false;
     }
+    public void ReserveChair(long uid, bool isResered)
+    {
+        if (PlaceableObjs.TryGetValue(uid, out var chair))
+        {
+            chair.ReservedNpcUid = 0;
+        }
+    }
+    public void ReleaseChair()
+    {
+        
+    }
 
     public bool TryFindApproachGridPos(
         Vector2Int targetGrid,

@@ -9,6 +9,7 @@ using UnityHFSM;
 public class NpcObj : MonoBehaviour
 {
     public delegate bool TryMoveToEmptyChair(out Vector2Int targetGridPos);
+
     public enum NpcState
     {
         Idle,
@@ -22,6 +23,8 @@ public class NpcObj : MonoBehaviour
     private static readonly string IdleState = nameof(NpcState.Idle);
     private static readonly string WanderingState = nameof(NpcState.Wandering);
     private static readonly string MovingToChairState = nameof(NpcState.MovingToChair);
+    private static readonly string SittingState = nameof(NpcState.Sitting);
+    private static readonly string ExittingState = nameof(NpcState.Exiting);
 
 
     [SerializeField] private Transform _hudAnchor;
@@ -114,15 +117,21 @@ public class NpcObj : MonoBehaviour
     private System.Action _showHud;
     private System.Action _hideHud;
     private TryMoveToEmptyChair _tryMoveToEmptyChair;
+    private System.Action _sitAction;
+    private System.Action<long> _exittingAction;    
     public bool IsMoving =>
         _fsm != null &&
-        _fsm.ActiveStateName == WanderingState;
+        _fsm.ActiveStateName == WanderingState &&
+        _fsm.ActiveStateName == MovingToChairState;
 
-    public void Initialize(Vector2Int gridPosition, System.Action showHud, System.Action hideHud, TryMoveToEmptyChair tryMoveToEmptyChair)
+    public void Initialize(Vector2Int gridPosition, System.Action showHud, System.Action hideHud, TryMoveToEmptyChair tryMoveToEmptyChair, System.Action sitAction, System.Action<long> exitingAction)
     {
         _tryMoveToEmptyChair = tryMoveToEmptyChair;
         _showHud = showHud;
         _hideHud = hideHud;
+        _sitAction = sitAction;
+        _exittingAction = exitingAction;
+
         Stop();
         RandomizeAppearance();
 
@@ -215,6 +224,11 @@ public class NpcObj : MonoBehaviour
         _fsm.AddState(IdleState, new UniTaskState(onEnterAsync: IdleStateAsync));
         _fsm.AddState(WanderingState, new UniTaskState(onEnterAsync: WanderingStateAsync));
         _fsm.AddState(MovingToChairState, new UniTaskState(onEnterAsync: MovingToChairStateAsync));
+        _fsm.AddState(SittingState, new UniTaskState(onEnterAsync: SittingStateAsync, onExit: state =>
+        {
+            _hideHud?.Invoke();
+        }));
+        _fsm.AddState(ExittingState, new UniTaskState(onEnterAsync: ExittingStateAsync));
 
         _fsm.SetStartState(IdleState);
         _fsm.Init();
@@ -245,12 +259,22 @@ public class NpcObj : MonoBehaviour
     private async UniTask MovingToChairStateAsync(CancellationToken cancellationToken)
     {
         skeletonAnimation.AnimationName = "walk";
-        _showHud?.Invoke();
 
         await MovingAsync(cancellationToken);
 
-        _hideHud?.Invoke();
+
         RequestIdleState();
+    }
+    private async UniTask SittingStateAsync(CancellationToken cancellationToken)
+    {
+        _showHud?.Invoke();
+        skeletonAnimation.AnimationName = "dance";
+        await UniTask.WaitForSeconds(3f, cancellationToken:cancellationToken);
+    }
+    private async UniTask ExittingStateAsync(CancellationToken cancellationToken)
+    {
+        _exittingAction?.Invoke(0);    
+        RequestWanderState();
     }
     private async UniTask WanderingStateAsync(CancellationToken cancellationToken)
     {
