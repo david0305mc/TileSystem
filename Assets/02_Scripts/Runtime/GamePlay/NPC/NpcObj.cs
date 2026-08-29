@@ -265,14 +265,14 @@ public class NpcObj : MonoBehaviour
 
         await MovingAsync(cancellationToken);
 
-
-        RequestIdleState();
+        RequestSittingState();
     }
     private async UniTask SittingStateAsync(CancellationToken cancellationToken)
     {
         _showHud?.Invoke();
         skeletonAnimation.AnimationName = "dance";
         await UniTask.WaitForSeconds(3f, cancellationToken:cancellationToken);
+        RequestExitState();
     }
     private async UniTask ExittingStateAsync(CancellationToken cancellationToken)
     {
@@ -325,7 +325,7 @@ public class NpcObj : MonoBehaviour
     {
         skeletonAnimation.Skeleton.ScaleX = isLeft ? -1f : 1f;
     }
-
+    
     private void RequestWanderState()
     {
         GridManager gridManager = GridManager.Instance;
@@ -345,6 +345,14 @@ public class NpcObj : MonoBehaviour
         }
 
         _fsm.RequestStateChange(WanderingState);
+    }
+    private void RequestSittingState()
+    {
+        _fsm?.RequestStateChange(SittingState);
+    }
+    private void RequestExitState()
+    {
+        _fsm?.RequestStateChange(ExittingState);
     }
     private bool TrySetTargetPath(Vector2Int targetGridPosition)
     {

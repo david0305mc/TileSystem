@@ -50,7 +50,6 @@ public class FloorTileObj : MonoBehaviour
     }
     private void OnMouseDown()
     {
-        Debug.Log("OnMouseDown");
         _touchAction?.Invoke();
     }
 }

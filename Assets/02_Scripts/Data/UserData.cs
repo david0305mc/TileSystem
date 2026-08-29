@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.Linq;
+using UnityEditor.Rendering;
 using UnityEngine;
 
 public sealed class UserDataDto
@@ -293,22 +294,6 @@ public partial class UserData : IDtoConvertible<UserDataDto>
             item.IsUnlocked &&
             (!item.IsOccupied || item.FurnitureUid == ignoredFurnitureUid));
     }
-    public bool TryFindEmptyChair(out PlaceableObjData chair)
-    {
-        foreach (var placeableObj in PlaceableObjs.Values)
-        {
-            if (placeableObj.TableData.furnituretype == FURNITURETYPE.CHAIR &&
-                !placeableObj.IsOccupied &&
-                !placeableObj.IsReserved)
-            {
-                chair = placeableObj;
-                return true;
-            }
-        }
-
-        chair = default;
-        return false;
-    }
     public bool TryReserveChair(long chairUid, long customerUid)
     {
         if (!PlaceableObjs.TryGetValue(chairUid, out var chair))
@@ -322,7 +307,7 @@ public partial class UserData : IDtoConvertible<UserDataDto>
 
         customerData.AssignedFurnitureUid = chairUid;
         chair.ReservedNpcUid = customerData.Uid;
-        return false;
+        return true;
     }
     public bool TryOccupyChair(long chairUid, long customerUid)
     {
@@ -338,7 +323,7 @@ public partial class UserData : IDtoConvertible<UserDataDto>
         customerData.AssignedFurnitureUid = chairUid;
         chair.OccupiedNpcUId = customerData.Uid;
         chair.ReservedNpcUid = 0;
-        return false;
+        return true;
     }
 
     public bool TryReleaseChair(long customerUid)
@@ -364,27 +349,27 @@ public partial class UserData : IDtoConvertible<UserDataDto>
         out Vector2Int approachGrid)
     {
         approachGrid = default;
-        Vector2Int[] ApproachDirections =
+        foreach(var grid in GetApproachGridPos(targetGrid))
         {
-            Vector2Int.up,
-            Vector2Int.down,
-            Vector2Int.left,
-            Vector2Int.right
-        };
-        foreach (var direction in ApproachDirections)
-        {
-            var gridPos = targetGrid + direction;
-
-            if (!Tiles.TryGetValue(gridPos, out var tile))
-                continue;
-
-            if (!tile.IsWalkable)
-                continue;
-
-            approachGrid = gridPos;
+            approachGrid = grid;
             return true;
         }
-
         return false;
+    }
+    public IEnumerable<Vector2Int> GetApproachGridPos(Vector2Int targetGrid)
+    {
+        foreach(var directon in GameDefine.ApproachDirections)
+        {
+            Vector2Int tilePos = targetGrid + directon;
+            if(!TryGetTileData(tilePos.x, tilePos.y, out var tileData))
+            {
+                continue;
+            }
+
+            if(!tileData.IsWalkable)
+                continue;
+            
+            yield return tilePos;
+        }
     }
 }

@@ -76,15 +76,13 @@ public class RestaurantManager : SingletonMono<RestaurantManager>
         }, (out Vector2Int targetGrid) =>
         {
             targetGrid = default;
-            if(UserDataManager.Instance.User.TryFindEmptyChair(out var chair))
+            if (TryFindReachableEmptyChair(npc, out var chair, out var approachGridPos))
             {
-                if(!UserDataManager.Instance.User.TryFindApproachGridPos(new Vector2Int(chair.GridX, chair.GridY), out var approachGrid))
+                if(!UserDataManager.Instance.User.TryReserveChair(chair.Uid, customerData.Uid))
                 {
                     return false;
                 }
-
-                targetGrid = approachGrid;
-                UserDataManager.Instance.User.TryReserveChair(chair.Uid, customerData.Uid);
+                targetGrid = approachGridPos;
                 return true;
             }
             else
@@ -93,11 +91,37 @@ public class RestaurantManager : SingletonMono<RestaurantManager>
             }
         }, () =>
         {
-            
+
         }, () =>
         {
             UserDataManager.Instance.User.TryReleaseChair(customerData.Uid);
         });
         return npc;
+    }
+    private bool TryFindReachableEmptyChair(NpcObj npcObj, out PlaceableObjData chair, out Vector2Int approachGridPos)
+    {
+        chair = default;
+        approachGridPos = default;
+        var user = UserDataManager.Instance.User;
+        foreach (var placeableData in user.PlaceableObjs.Values)
+        {
+            if (placeableData.TableData.furnituretype != FURNITURETYPE.CHAIR)
+                continue;
+            if (placeableData.IsOccupied || placeableData.IsReserved)
+                continue;
+
+            foreach (var gridPos in user.GetApproachGridPos(new Vector2Int(placeableData.GridX, placeableData.GridY)))
+            {
+                
+                if(!_gridManager.TryFindWorldPath(npcObj.transform.position, _gridManager.GridToWorldPosition(gridPos), out var _param))
+                {
+                    continue;
+                }
+                chair = placeableData;
+                approachGridPos = gridPos;
+                return true;
+            }
+        }
+        return false;
     }
 }

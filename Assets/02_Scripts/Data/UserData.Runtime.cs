@@ -2,12 +2,11 @@ using System.Collections.Generic;
 
 public class CustomerData
 {
-    public long Uid=> _uid;
-    public long _uid;
+    public long Uid {get;}
     public long AssignedFurnitureUid {get; set;}
     public CustomerData(long uid)
     {
-        _uid = uid;
+        Uid = uid;
     }
 }
 
@@ -20,9 +19,19 @@ public partial class UserData
     public long GenerateRuntimeUid()
     {
         if (NextRuntimeUid <= 0)
-            NextRuntimeUid = DefaultPersistentUid;
+            NextRuntimeUid = DefaultRuntimeUid;
 
         return NextRuntimeUid++;
+    }
+    public void ResetRuntimeData()
+    {
+        NextRuntimeUid = DefaultRuntimeUid;
+        _customers.Clear();
+        foreach(var placeableObj in PlaceableObjs.Values)
+        {
+            placeableObj.ReservedNpcUid = 0;
+            placeableObj.OccupiedNpcUId = 0;
+        }
     }
 
     public CustomerData TryGetCustomer(long uid)
@@ -42,6 +51,7 @@ public partial class UserData
     }
     public void DeleteCustomer(long uid)
     {
+        TryReleaseChair(uid);
         _customers.Remove(uid);
     }
 }

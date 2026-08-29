@@ -1,4 +1,4 @@
-
+using UnityEngine;
 
 public static class GameDefine
 {
@@ -14,6 +14,14 @@ public static class GameDefine
 
     public static int GridWidth = 20;
     public static int GridHeight = 20;
+
+    public readonly static Vector2Int[] ApproachDirections =
+    {
+        Vector2Int.up,
+        Vector2Int.right,
+        Vector2Int.down,
+        Vector2Int.left
+    };
 
 }
 
