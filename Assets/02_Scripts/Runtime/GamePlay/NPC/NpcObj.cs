@@ -118,14 +118,17 @@ public class NpcObj : MonoBehaviour
     private System.Action _hideHud;
     private TryMoveToEmptyChair _tryMoveToEmptyChair;
     private System.Action _sitAction;
-    private System.Action<long> _exittingAction;    
+    private System.Action _exittingAction;    
     public bool IsMoving =>
         _fsm != null &&
         _fsm.ActiveStateName == WanderingState &&
         _fsm.ActiveStateName == MovingToChairState;
 
-    public void Initialize(Vector2Int gridPosition, System.Action showHud, System.Action hideHud, TryMoveToEmptyChair tryMoveToEmptyChair, System.Action sitAction, System.Action<long> exitingAction)
+    private long _uid;
+
+    public void Initialize(long uid, Vector2Int gridPosition, System.Action showHud, System.Action hideHud, TryMoveToEmptyChair tryMoveToEmptyChair, System.Action sitAction, System.Action exitingAction)
     {
+        uid = _uid;
         _tryMoveToEmptyChair = tryMoveToEmptyChair;
         _showHud = showHud;
         _hideHud = hideHud;
@@ -273,7 +276,7 @@ public class NpcObj : MonoBehaviour
     }
     private async UniTask ExittingStateAsync(CancellationToken cancellationToken)
     {
-        _exittingAction?.Invoke(0);    
+        _exittingAction?.Invoke();    
         RequestWanderState();
     }
     private async UniTask WanderingStateAsync(CancellationToken cancellationToken)

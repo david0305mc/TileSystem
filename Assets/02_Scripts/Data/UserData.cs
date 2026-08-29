@@ -12,7 +12,7 @@ public sealed class UserDataDto
     public HeroDataDto HeroDto = new();
 }
 
-public sealed class UserData : IDtoConvertible<UserDataDto>
+public partial class UserData : IDtoConvertible<UserDataDto>
 {
     private const long DefaultPersistentUid = 1000;
 
@@ -309,16 +309,54 @@ public sealed class UserData : IDtoConvertible<UserDataDto>
         chair = default;
         return false;
     }
-    public void ReserveChair(long uid, bool isResered)
+    public bool TryReserveChair(long chairUid, long customerUid)
     {
-        if (PlaceableObjs.TryGetValue(uid, out var chair))
+        if (!PlaceableObjs.TryGetValue(chairUid, out var chair))
         {
-            chair.ReservedNpcUid = 0;
+            return false;
         }
+        if (!_customers.TryGetValue(customerUid, out var customerData))
+        {
+            return false;
+        }
+
+        customerData.AssignedFurnitureUid = chairUid;
+        chair.ReservedNpcUid = customerData.Uid;
+        return false;
     }
-    public void ReleaseChair()
+    public bool TryOccupyChair(long chairUid, long customerUid)
     {
-        
+        if (!PlaceableObjs.TryGetValue(chairUid, out var chair))
+        {
+            return false;
+        }
+        if (!_customers.TryGetValue(customerUid, out var customerData))
+        {
+            return false;
+        }
+
+        customerData.AssignedFurnitureUid = chairUid;
+        chair.OccupiedNpcUId = customerData.Uid;
+        chair.ReservedNpcUid = 0;
+        return false;
+    }
+
+    public bool TryReleaseChair(long customerUid)
+    {
+        if (!_customers.TryGetValue(customerUid, out var customerData))
+        {
+            return false;
+        }
+        long chairUid = customerData.AssignedFurnitureUid;
+        if (!PlaceableObjs.TryGetValue(chairUid, out var chair))
+        {
+            return false;
+        }
+        customerData.AssignedFurnitureUid = 0;
+        chair.ReservedNpcUid = 0;
+        chair.OccupiedNpcUId = 0;
+
+        return true;
     }
 
     public bool TryFindApproachGridPos(
