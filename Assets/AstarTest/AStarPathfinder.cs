@@ -147,7 +147,13 @@ public sealed class AStarSearchSession
             }
         }
 
-        if (!pathfinder.IsWalkable(start) || !pathfinder.IsWalkable(target))
+        if(!pathfinder.IsInsideGrid(start))
+        {
+            Status = AStarSearchStatus.InvalidStartOrTarget;
+            return;
+        }
+
+        if (!pathfinder.IsWalkable(target))
         {
             Status = AStarSearchStatus.InvalidStartOrTarget;
             return;

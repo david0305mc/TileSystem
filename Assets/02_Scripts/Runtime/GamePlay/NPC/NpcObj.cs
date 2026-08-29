@@ -8,7 +8,7 @@ using UnityHFSM;
 
 public class NpcObj : MonoBehaviour
 {
-    public delegate bool TryMoveToEmptyChair(out Vector2Int targetGridPos);
+    public delegate bool TryMoveToEmptyChair(out PlaceableObj targetChair, out Vector2Int targetGridPos);
 
     public enum NpcState
     {
@@ -112,13 +112,14 @@ public class NpcObj : MonoBehaviour
 
     private int _pathIndex;
     private Vector2Int _targetGridPosition;
+    private PlaceableObj _targetChair;
 
     public Vector2Int CurrentGridPosition { get; private set; }
     private System.Action _showHud;
     private System.Action _hideHud;
     private TryMoveToEmptyChair _tryMoveToEmptyChair;
     private System.Action _sitAction;
-    private System.Action _exittingAction;    
+    private System.Action _exittingAction;
     public bool IsMoving =>
         _fsm != null &&
         _fsm.ActiveStateName == WanderingState &&
@@ -249,9 +250,9 @@ public class NpcObj : MonoBehaviour
             return;
         }
 
-        if (_tryMoveToEmptyChair(out var targetGridPos))
+        if (_tryMoveToEmptyChair(out var targetChair, out var targetGridPos))
         {
-            RequestMovingToChairState(targetGridPos);
+            RequestMovingToChairState(targetChair, targetGridPos);
         }
         else
         {
@@ -270,13 +271,14 @@ public class NpcObj : MonoBehaviour
     private async UniTask SittingStateAsync(CancellationToken cancellationToken)
     {
         _showHud?.Invoke();
+        transform.position = _targetChair.transform.position;
         skeletonAnimation.AnimationName = "dance";
-        await UniTask.WaitForSeconds(3f, cancellationToken:cancellationToken);
+        await UniTask.WaitForSeconds(3f, cancellationToken: cancellationToken);
         RequestExitState();
     }
     private async UniTask ExittingStateAsync(CancellationToken cancellationToken)
     {
-        _exittingAction?.Invoke();    
+        _exittingAction?.Invoke();
         RequestWanderState();
     }
     private async UniTask WanderingStateAsync(CancellationToken cancellationToken)
@@ -325,7 +327,7 @@ public class NpcObj : MonoBehaviour
     {
         skeletonAnimation.Skeleton.ScaleX = isLeft ? -1f : 1f;
     }
-    
+
     private void RequestWanderState()
     {
         GridManager gridManager = GridManager.Instance;
@@ -371,10 +373,10 @@ public class NpcObj : MonoBehaviour
         _pathIndex = 0;
         return true;
     }
-    private void RequestMovingToChairState(Vector2Int targetGrid)
+    private void RequestMovingToChairState(PlaceableObj chair, Vector2Int targetGrid)
     {
         _targetGridPosition = targetGrid;
-
+        _targetChair = chair;
         if (!TrySetTargetPath(targetGrid))
         {
             Debug.Log("No Way");

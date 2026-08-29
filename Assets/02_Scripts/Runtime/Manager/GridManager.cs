@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using Cysharp.Threading.Tasks;
 using UnityEngine;
 using UnityEngine.InputSystem;
+using UnityEngine.UIElements;
 
 public class GridManager : SingletonMono<GridManager>
 {
@@ -15,7 +16,7 @@ public class GridManager : SingletonMono<GridManager>
     [Header("References")]
     [SerializeField] private FloorTileObj _floorPrefab;
     [SerializeField] private PlaceableObj _placeableObjPrefab;
-    
+
     [SerializeField] private Transform _floorRoot;
     [SerializeField] private Transform _gridRoot;
     public Transform GridRoot => _gridRoot;
@@ -32,6 +33,14 @@ public class GridManager : SingletonMono<GridManager>
     public AStarPathfinder Pathfinder => _pathfinder;
     public bool HasPreviewObj => _previewObj != null;
 
+    private Dictionary<long, PlaceableObj> placeables;
+    public PlaceableObj TryGetPlaceableObj(long uid)
+    {
+        if (placeables.TryGetValue(uid, out var placeableObj))
+            return placeableObj;
+        return default;
+    }
+
     public bool TryGetPreviewObj(out PlaceableObj placeableObj)
     {
         placeableObj = _previewObj;
@@ -42,6 +51,7 @@ public class GridManager : SingletonMono<GridManager>
 
     void Start()
     {
+        placeables = new Dictionary<long, PlaceableObj>();
         _mainCamera = Camera.main;
         Initialize();
     }
@@ -183,6 +193,7 @@ public class GridManager : SingletonMono<GridManager>
         placeableObj.Initialize(placeableObjData, TryMovePlaceableObjToDropPosition);
         placeableObj.transform.localPosition = localPos;
         placeableObj.transform.localRotation = Quaternion.identity;
+        placeables.Add(uid, placeableObj);
     }
 
     public bool CreatePreviewObj(int furnitureId)

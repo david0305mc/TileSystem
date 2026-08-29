@@ -73,8 +73,9 @@ public class RestaurantManager : SingletonMono<RestaurantManager>
 
             npc.NpcHud = null;
             _overHeadUIManager.DetachNpcHud(npcHud);
-        }, (out Vector2Int targetGrid) =>
+        }, (out PlaceableObj targetChair, out Vector2Int targetGrid) =>
         {
+            targetChair = default;
             targetGrid = default;
             if (TryFindReachableEmptyChair(npc, out var chair, out var approachGridPos))
             {
@@ -83,6 +84,7 @@ public class RestaurantManager : SingletonMono<RestaurantManager>
                     return false;
                 }
                 targetGrid = approachGridPos;
+                targetChair = _gridManager.TryGetPlaceableObj(chair.Uid);
                 return true;
             }
             else
