@@ -309,4 +309,33 @@ public sealed class UserData : IDtoConvertible<UserDataDto>
         chair = default;
         return false;
     }
+
+    public bool TryFindApproachGridPos(
+        Vector2Int targetGrid,
+        out Vector2Int approachGrid)
+    {
+        approachGrid = default;
+        Vector2Int[] ApproachDirections =
+        {
+            Vector2Int.up,
+            Vector2Int.down,
+            Vector2Int.left,
+            Vector2Int.right
+        };
+        foreach (var direction in ApproachDirections)
+        {
+            var gridPos = targetGrid + direction;
+
+            if (!Tiles.TryGetValue(gridPos, out var tile))
+                continue;
+
+            if (!tile.IsWalkable)
+                continue;
+
+            approachGrid = gridPos;
+            return true;
+        }
+
+        return false;
+    }
 }

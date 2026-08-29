@@ -71,6 +71,24 @@ public class RestaurantManager : SingletonMono<RestaurantManager>
 
             npc.NpcHud = null;
             _overHeadUIManager.DetachNpcHud(npcHud);
+        }, (out Vector2Int targetGrid) =>
+        {
+            targetGrid = default;
+            if(UserDataManager.Instance.User.TryFindEmptyChair(out var chair))
+            {
+                if(!UserDataManager.Instance.User.TryFindApproachGridPos(new Vector2Int(chair.GridX, chair.GridY), out var approachGrid))
+                {
+                    return false;
+                }
+                
+                targetGrid = new Vector2Int(approachGrid.x, approachGrid.y);
+                targetGrid = approachGrid;
+                return true;
+            }
+            else
+            {
+                return false;
+            }
         });
         return npc;
     }

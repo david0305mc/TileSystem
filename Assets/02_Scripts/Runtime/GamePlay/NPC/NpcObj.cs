@@ -8,6 +8,7 @@ using UnityHFSM;
 
 public class NpcObj : MonoBehaviour
 {
+    public delegate bool TryMovceToEmptyChair(out Vector2Int targetGridPos);
     public enum NpcState
     {
         Idle,
@@ -112,12 +113,14 @@ public class NpcObj : MonoBehaviour
     public Vector2Int CurrentGridPosition { get; private set; }
     private System.Action _showHud;
     private System.Action _hideHud;
+    private TryMovceToEmptyChair _tryMovceToEmptyChair;
     public bool IsMoving =>
         _fsm != null &&
         _fsm.ActiveStateName == WanderingState;
 
-    public void Initialize(Vector2Int gridPosition, System.Action showHud, System.Action hideHud)
+    public void Initialize(Vector2Int gridPosition, System.Action showHud, System.Action hideHud, TryMovceToEmptyChair tryMovceToEmptyChair)
     {
+        _tryMovceToEmptyChair = tryMovceToEmptyChair;
         _showHud = showHud;
         _hideHud = hideHud;
         Stop();
@@ -229,19 +232,23 @@ public class NpcObj : MonoBehaviour
             return;
         }
 
-        RequestWanderState();
+        if (_tryMovceToEmptyChair(out var targetGridPos))
+        {
+            RequestMovingToChairState(targetGridPos);
+        }
+        else
+        {
+            RequestWanderState();
+        }
+
     }
     private async UniTask MovingToChairStateAsync(CancellationToken cancellationToken)
     {
-        skeletonAnimation.AnimationName = "dance";
+        skeletonAnimation.AnimationName = "walk";
         _showHud?.Invoke();
 
-        await UniTask.WaitForSeconds(Random.Range(0.3f, 2f), cancellationToken: cancellationToken);
-
-        if (cancellationToken.IsCancellationRequested)
-        {
-            return;
-        }
+        await MovingAsync(cancellationToken);
+        
         _hideHud?.Invoke();
         RequestIdleState();
     }
@@ -252,9 +259,14 @@ public class NpcObj : MonoBehaviour
             RequestIdleState();
             return;
         }
-
-        _pathIndex = 0;
         skeletonAnimation.AnimationName = "walk";
+
+        await MovingAsync(cancellationToken);
+
+        RequestIdleState();
+    }
+    private async UniTask MovingAsync(CancellationToken cancellationToken)
+    {
         float arrivalDistanceSqr = _arrivalDistance * _arrivalDistance;
 
         while (_pathIndex < _worldPath.Count)
@@ -281,8 +293,6 @@ public class NpcObj : MonoBehaviour
 
         _worldPath.Clear();
         _pathIndex = 0;
-
-        RequestMovingToChairState();
     }
     private void SetFlip(bool isLeft)
     {
@@ -301,6 +311,39 @@ public class NpcObj : MonoBehaviour
             RequestIdleState();
             return;
         }
+        if (!TrySetTargetPath(targetGridPosition))
+        {
+            RequestIdleState();
+            return;
+        }
+
+        _fsm.RequestStateChange(WanderingState);
+    }
+    private bool TrySetTargetPath(Vector2Int targetGridPosition)
+    {
+        GridManager gridManager = GridManager.Instance;
+        Vector3 targetWorldPosition = gridManager.GridToWorldPosition(targetGridPosition);
+        if (!gridManager.TryFindWorldPath(transform.position, targetWorldPosition,
+            out var path) || path == null || path.Count == 0)
+        {
+            return false;
+        }
+
+        _worldPath.Clear();
+        _worldPath.AddRange(path);
+
+        _targetGridPosition = targetGridPosition;
+        _pathIndex = 0;
+        return true;
+    }
+    private List<Vector3> TryFindWorldPath(Vector2Int targetGridPosition)
+    {
+        GridManager gridManager = GridManager.Instance;
+        // 현재 위치와 동일한 위치라면 다시 대기
+        if (targetGridPosition == CurrentGridPosition)
+        {
+            return default;
+        }
 
         Vector3 targetWorldPosition = gridManager.GridToWorldPosition(targetGridPosition);
         if (!gridManager.TryFindWorldPath(
@@ -310,21 +353,21 @@ public class NpcObj : MonoBehaviour
             path == null ||
             path.Count == 0)
         {
-            RequestIdleState();
+            return default;
+        }
+        return path;
+    }
+
+    private void RequestMovingToChairState(Vector2Int targetGrid)
+    {
+        _targetGridPosition = targetGrid;
+
+        if (!TrySetTargetPath(targetGrid))
+        {
+            Debug.Log("No Way");
             return;
         }
 
-        _worldPath.Clear();
-        _worldPath.AddRange(path);
-
-        _targetGridPosition = targetGridPosition;
-        _pathIndex = 0;
-
-        _fsm.RequestStateChange(WanderingState);
-    }
-
-    private void RequestMovingToChairState()
-    {
         _fsm?.RequestStateChange(MovingToChairState);
     }
     private void RequestIdleState()
