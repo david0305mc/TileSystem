@@ -80,8 +80,7 @@ public class RestaurantManager : SingletonMono<RestaurantManager>
                 {
                     return false;
                 }
-                
-                targetGrid = new Vector2Int(approachGrid.x, approachGrid.y);
+
                 targetGrid = approachGrid;
                 return true;
             }

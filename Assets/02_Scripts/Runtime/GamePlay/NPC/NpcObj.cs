@@ -8,7 +8,7 @@ using UnityHFSM;
 
 public class NpcObj : MonoBehaviour
 {
-    public delegate bool TryMovceToEmptyChair(out Vector2Int targetGridPos);
+    public delegate bool TryMoveToEmptyChair(out Vector2Int targetGridPos);
     public enum NpcState
     {
         Idle,
@@ -113,14 +113,14 @@ public class NpcObj : MonoBehaviour
     public Vector2Int CurrentGridPosition { get; private set; }
     private System.Action _showHud;
     private System.Action _hideHud;
-    private TryMovceToEmptyChair _tryMovceToEmptyChair;
+    private TryMoveToEmptyChair _tryMoveToEmptyChair;
     public bool IsMoving =>
         _fsm != null &&
         _fsm.ActiveStateName == WanderingState;
 
-    public void Initialize(Vector2Int gridPosition, System.Action showHud, System.Action hideHud, TryMovceToEmptyChair tryMovceToEmptyChair)
+    public void Initialize(Vector2Int gridPosition, System.Action showHud, System.Action hideHud, TryMoveToEmptyChair tryMoveToEmptyChair)
     {
-        _tryMovceToEmptyChair = tryMovceToEmptyChair;
+        _tryMoveToEmptyChair = tryMoveToEmptyChair;
         _showHud = showHud;
         _hideHud = hideHud;
         Stop();
@@ -232,7 +232,7 @@ public class NpcObj : MonoBehaviour
             return;
         }
 
-        if (_tryMovceToEmptyChair(out var targetGridPos))
+        if (_tryMoveToEmptyChair(out var targetGridPos))
         {
             RequestMovingToChairState(targetGridPos);
         }
@@ -248,7 +248,7 @@ public class NpcObj : MonoBehaviour
         _showHud?.Invoke();
 
         await MovingAsync(cancellationToken);
-        
+
         _hideHud?.Invoke();
         RequestIdleState();
     }
@@ -336,28 +336,6 @@ public class NpcObj : MonoBehaviour
         _pathIndex = 0;
         return true;
     }
-    private List<Vector3> TryFindWorldPath(Vector2Int targetGridPosition)
-    {
-        GridManager gridManager = GridManager.Instance;
-        // 현재 위치와 동일한 위치라면 다시 대기
-        if (targetGridPosition == CurrentGridPosition)
-        {
-            return default;
-        }
-
-        Vector3 targetWorldPosition = gridManager.GridToWorldPosition(targetGridPosition);
-        if (!gridManager.TryFindWorldPath(
-                transform.position,
-                targetWorldPosition,
-                out var path) ||
-            path == null ||
-            path.Count == 0)
-        {
-            return default;
-        }
-        return path;
-    }
-
     private void RequestMovingToChairState(Vector2Int targetGrid)
     {
         _targetGridPosition = targetGrid;
