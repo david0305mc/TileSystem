@@ -129,7 +129,7 @@ public class NpcObj : MonoBehaviour
 
     public void Initialize(long uid, Vector2Int gridPosition, System.Action showHud, System.Action hideHud, TryMoveToEmptyChair tryMoveToEmptyChair, System.Action sitAction, System.Action exitingAction)
     {
-        uid = _uid;
+        _uid = uid;
         _tryMoveToEmptyChair = tryMoveToEmptyChair;
         _showHud = showHud;
         _hideHud = hideHud;
@@ -270,6 +270,13 @@ public class NpcObj : MonoBehaviour
     }
     private async UniTask SittingStateAsync(CancellationToken cancellationToken)
     {
+        if (_targetChair == null)
+        {
+            Debug.LogWarning("NPC target chair is missing.");
+            RequestExitState();
+            return;
+        }
+
         _showHud?.Invoke();
         transform.position = _targetChair.transform.position;
         skeletonAnimation.AnimationName = "dance";
@@ -375,6 +382,13 @@ public class NpcObj : MonoBehaviour
     }
     private void RequestMovingToChairState(PlaceableObj chair, Vector2Int targetGrid)
     {
+        if (chair == null)
+        {
+            Debug.LogWarning("NPC cannot move to a missing chair.");
+            RequestIdleState();
+            return;
+        }
+
         _targetGridPosition = targetGrid;
         _targetChair = chair;
         if (!TrySetTargetPath(targetGrid))

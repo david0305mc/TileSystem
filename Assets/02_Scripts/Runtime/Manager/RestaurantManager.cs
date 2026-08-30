@@ -79,12 +79,18 @@ public class RestaurantManager : SingletonMono<RestaurantManager>
             targetGrid = default;
             if (TryFindReachableEmptyChair(npc, out var chair, out var approachGridPos))
             {
+                var chairObj = _gridManager.TryGetPlaceableObj(chair.Uid);
+                if (chairObj == null)
+                {
+                    return false;
+                }
+
                 if(!UserDataManager.Instance.User.TryReserveChair(chair.Uid, customerData.Uid))
                 {
                     return false;
                 }
                 targetGrid = approachGridPos;
-                targetChair = _gridManager.TryGetPlaceableObj(chair.Uid);
+                targetChair = chairObj;
                 return true;
             }
             else

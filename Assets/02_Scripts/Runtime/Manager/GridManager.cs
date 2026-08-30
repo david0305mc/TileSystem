@@ -193,7 +193,7 @@ public class GridManager : SingletonMono<GridManager>
         placeableObj.Initialize(placeableObjData, TryMovePlaceableObjToDropPosition);
         placeableObj.transform.localPosition = localPos;
         placeableObj.transform.localRotation = Quaternion.identity;
-        placeables.Add(uid, placeableObj);
+        RegisterPlaceableObj(uid, placeableObj);
     }
 
     public bool CreatePreviewObj(int furnitureId)
@@ -240,7 +240,18 @@ public class GridManager : SingletonMono<GridManager>
         var placeableObj = _previewObj;
         ClearPreviewState();
         placeableObj.Initialize(placeableObjData, TryMovePlaceableObjToDropPosition);
+        RegisterPlaceableObj(placeableObjData.Uid, placeableObj);
         return true;
+    }
+
+    private void RegisterPlaceableObj(long uid, PlaceableObj placeableObj)
+    {
+        if (placeables == null || placeableObj == null)
+        {
+            return;
+        }
+
+        placeables[uid] = placeableObj;
     }
 
     public void CancelPreviewPlacement()
