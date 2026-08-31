@@ -70,8 +70,21 @@ public sealed class SkillDataDto
     public long Level;
 }
 
+public class ChairObjData : PlaceableObjData
+{
+    public ReactiveProperty<bool> IsNearByTable { get; } = new();
 
-public sealed class PlaceableObjData : IDtoConvertible<PlaceableObjDataDto>
+    internal ChairObjData(PlaceableObjDataDto dto) : base(dto)
+    {
+    }
+
+    public override void UpdateStatus()
+    {
+        base.UpdateStatus();
+    }
+}
+
+public class PlaceableObjData : IDtoConvertible<PlaceableObjDataDto>
 {
     public long Uid;
     public int TableID;
@@ -80,21 +93,52 @@ public sealed class PlaceableObjData : IDtoConvertible<PlaceableObjDataDto>
 
     public bool IsReserved => ReservedNpcUid != 0;
     public bool IsOccupied => OccupiedNpcUId != 0;
-    public long ReservedNpcUid {get; set;}
-    public long OccupiedNpcUId {get; set;}
-    public DataManager.Furniture TableData;
-    public PlaceableObjData(PlaceableObjDataDto dto)
+    public long ReservedNpcUid { get; set; }
+    public long OccupiedNpcUId { get; set; }
+    public DataManager.Furniture TableData { get; private set; }
+
+    protected PlaceableObjData(PlaceableObjDataDto dto)
     {
         ApplyDto(dto);
     }
 
+    public virtual void UpdateStatus()
+    {
+    }
+
+    public static bool TryCreate(PlaceableObjDataDto dto, out PlaceableObjData placeableObjData)
+    {
+        placeableObjData = null;
+        if (dto == null)
+            return false;
+
+        var tableData = DataManager.Instance.GetFurnitureData(dto.TableID);
+        if (tableData == null)
+            return false;
+
+        switch (tableData.furnituretype)
+        {
+            case FURNITURETYPE.CHAIR:
+                placeableObjData = new ChairObjData(dto);
+                break;
+            default:
+                placeableObjData = new PlaceableObjData(dto);
+                break;
+        }
+
+        placeableObjData.TableData = tableData;
+        return true;
+    }
+
     public void ApplyDto(PlaceableObjDataDto dto)
     {
+        if (dto == null)
+            return;
+
         Uid = dto.Uid;
         TableID = dto.TableID;
         GridX = dto.GridX;
         GridY = dto.GridY;
-        TableData = DataManager.Instance.GetFurnitureData(TableID);
     }
 
     public PlaceableObjDataDto ToDto()

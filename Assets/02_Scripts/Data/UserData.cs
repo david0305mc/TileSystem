@@ -75,12 +75,7 @@ public partial class UserData : IDtoConvertible<UserDataDto>
                 skillData.ApplyDto(dtoValue);
                 return skillData;
             });
-        DataMapperUtil.ApplyDtoDictionary(
-            PlaceableObjs, dto.Placeables, dtoValue =>
-            {
-                return new PlaceableObjData(dtoValue);
-            }
-        );
+        ApplyPlaceableDtos(dto.Placeables);
 
         ApplyTileDtos(dto.TileDtos);
 
@@ -125,7 +120,32 @@ public partial class UserData : IDtoConvertible<UserDataDto>
             var tileData = new TileData(position);
 
             tileData.ApplyDto(tileDto);
+            if (tileData.FurnitureUid != 0 && !PlaceableObjs.ContainsKey(tileData.FurnitureUid))
+                tileData.FurnitureUid = 0;
+
             Tiles[position] = tileData;
+        }
+    }
+
+    private void ApplyPlaceableDtos(Dictionary<long, PlaceableObjDataDto> placeableDtos)
+    {
+        PlaceableObjs.Clear();
+
+        if (placeableDtos == null)
+            return;
+
+        foreach (var pair in placeableDtos)
+        {
+            if (pair.Value == null)
+                continue;
+
+            if (!PlaceableObjData.TryCreate(pair.Value, out var placeableObjData))
+            {
+                Debug.LogWarning($"Skipping placeable {pair.Key}: furniture table ID {pair.Value.TableID} was not found.");
+                continue;
+            }
+
+            PlaceableObjs[pair.Key] = placeableObjData;
         }
     }
 
@@ -233,13 +253,16 @@ public partial class UserData : IDtoConvertible<UserDataDto>
             return null;
 
         long uid = GeneratePersistentUid();
-        var placeableObjData = new PlaceableObjData(new PlaceableObjDataDto()
+        var dto = new PlaceableObjDataDto
         {
             Uid = uid,
             TableID = tid,
             GridX = gridX,
             GridY = gridY
-        });
+        };
+        if (!PlaceableObjData.TryCreate(dto, out var placeableObjData))
+            return null;
+
         PlaceableObjs.Add(uid, placeableObjData);
         foreach (var tileData in tileDatas)
         {
