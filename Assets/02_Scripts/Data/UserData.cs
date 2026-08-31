@@ -1,6 +1,5 @@
 using System.Collections.Generic;
 using System.Linq;
-using UnityEditor.Rendering;
 using UnityEngine;
 
 public sealed class UserDataDto
@@ -286,9 +285,10 @@ public partial class UserData : IDtoConvertible<UserDataDto>
             return false;
         }
 
-        foreach (var tileData in currentTiles)
+        foreach (TileData tileData in currentTiles)
         {
             tileData.FurnitureUid = 0;
+            UpdatePlaceableConnect(tileData);
         }
 
         placeableObjData.GridX = targetGridPos.x;
@@ -299,6 +299,61 @@ public partial class UserData : IDtoConvertible<UserDataDto>
             targetTileData.FurnitureUid = placeableUid;
         }
         return true;
+    }
+    private void UpdatePlaceableConnect(TileData tileData)
+    {
+        var gridPos = tileData.Position;
+        if (tileData.FurnitureUid == 0)
+        {
+            return;
+        }
+        else if (PlaceableObjs.TryGetValue(tileData.FurnitureUid, out var placeableObjData))
+        {
+            if (placeableObjData.TableData.furnituretype == FURNITURETYPE.CHAIR)
+            {
+                ChairObjData chairObjData = placeableObjData as ChairObjData;
+                if (TryGetTileData(gridPos.x, gridPos.y, out var upTileData))
+                {
+                    if (PlaceableObjs.TryGetValue(tileData.FurnitureUid, out var placeableOb))
+                    {
+                        if (placeableOb.TableData.furnituretype == FURNITURETYPE.TABLE)
+                        {
+                            chairObjData.ConnectedTableUid.Value = placeableOb.Uid;
+                        }
+                    }
+                }
+                if (TryGetTileData(gridPos.x, gridPos.y, out var rightTileData))
+                {
+                    if (PlaceableObjs.TryGetValue(tileData.FurnitureUid, out var placeableOb))
+                    {
+                        if (placeableOb.TableData.furnituretype == FURNITURETYPE.TABLE)
+                        {
+                            chairObjData.ConnectedTableUid.Value = placeableOb.Uid;
+                        }
+                    }
+                }
+                if (TryGetTileData(gridPos.x, gridPos.y, out var leftTileData))
+                {
+                    if (PlaceableObjs.TryGetValue(tileData.FurnitureUid, out var placeableOb))
+                    {
+                        if (placeableOb.TableData.furnituretype == FURNITURETYPE.TABLE)
+                        {
+                            chairObjData.ConnectedTableUid.Value = placeableOb.Uid;
+                        }
+                    }
+                }
+                if (TryGetTileData(gridPos.x, gridPos.y, out var downTileData))
+                {
+                    if (PlaceableObjs.TryGetValue(tileData.FurnitureUid, out var placeableOb))
+                    {
+                        if (placeableOb.TableData.furnituretype == FURNITURETYPE.TABLE)
+                        {
+                            chairObjData.ConnectedTableUid.Value = placeableOb.Uid;
+                        }
+                    }
+                }
+            }
+        }
     }
 
     public bool CanPlaceFurniture(int furnitureId, Vector2Int gridPosition, long ignoredFurnitureUid = 0)
@@ -372,7 +427,7 @@ public partial class UserData : IDtoConvertible<UserDataDto>
         out Vector2Int approachGrid)
     {
         approachGrid = default;
-        foreach(var grid in GetApproachGridPos(targetGrid))
+        foreach (var grid in GetApproachGridPos(targetGrid))
         {
             approachGrid = grid;
             return true;
@@ -381,17 +436,17 @@ public partial class UserData : IDtoConvertible<UserDataDto>
     }
     public IEnumerable<Vector2Int> GetApproachGridPos(Vector2Int targetGrid)
     {
-        foreach(var directon in GameDefine.ApproachDirections)
+        foreach (var directon in GameDefine.ApproachDirections)
         {
             Vector2Int tilePos = targetGrid + directon;
-            if(!TryGetTileData(tilePos.x, tilePos.y, out var tileData))
+            if (!TryGetTileData(tilePos.x, tilePos.y, out var tileData))
             {
                 continue;
             }
 
-            if(!tileData.IsWalkable)
+            if (!tileData.IsWalkable)
                 continue;
-            
+
             yield return tilePos;
         }
     }

@@ -72,7 +72,7 @@ public sealed class SkillDataDto
 
 public class ChairObjData : PlaceableObjData
 {
-    public ReactiveProperty<bool> IsNearByTable { get; } = new();
+    public ReactiveProperty<long> ConnectedTableUid { get; set; } = new();
 
     internal ChairObjData(PlaceableObjDataDto dto) : base(dto)
     {
