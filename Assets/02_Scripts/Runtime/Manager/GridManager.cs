@@ -69,7 +69,7 @@ public class GridManager : SingletonMono<GridManager>
     {
         foreach (var obj in UserDataManager.Instance.User.PlaceableObjs)
         {
-            CreateBuildingObj(obj.Key);
+            CreatePlaceableObj(obj.Key);
         }
     }
 
@@ -183,7 +183,7 @@ public class GridManager : SingletonMono<GridManager>
         });
         _floorTileObjs[gridPos.x, gridPos.y] = tileObj;
     }
-    private void CreateBuildingObj(long uid)
+    private void CreatePlaceableObj(long uid)
     {
         UserDataManager.Instance.User.TryGetPlaceableObjData(uid, out var placeableObjData);
         var gridPos = new Vector2Int(placeableObjData.GridX, placeableObjData.GridY);
