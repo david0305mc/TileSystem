@@ -422,18 +422,6 @@ public partial class UserData : IDtoConvertible<UserDataDto>
         return true;
     }
 
-    public bool TryFindApproachGridPos(
-        Vector2Int targetGrid,
-        out Vector2Int approachGrid)
-    {
-        approachGrid = default;
-        foreach (var grid in GetApproachGridPos(targetGrid))
-        {
-            approachGrid = grid;
-            return true;
-        }
-        return false;
-    }
     public IEnumerable<Vector2Int> GetApproachGridPos(Vector2Int targetGrid)
     {
         foreach (var directon in GameDefine.ApproachDirections)
