@@ -450,4 +450,25 @@ public partial class UserData : IDtoConvertible<UserDataDto>
             yield return tilePos;
         }
     }
+    
+    private void RebuildPlaceableConnection()
+    {
+        // To Do : Disconnect Connections
+
+
+        HashSet<Vector2Int> checkSet = new HashSet<Vector2Int>();
+        var chairDatas = PlaceableObjs.Values.Where(item=>item.TableData.furnituretype == FURNITURETYPE.CHAIR);
+        foreach(var chairData in chairDatas)
+        {
+            var gridPos = new Vector2Int(chairData.GridX, chairData.GridY); 
+            checkSet.Add(gridPos);
+
+            foreach(var dir in GameDefine.AdjacentDirections)
+            {
+                checkSet.Add(gridPos + dir);
+            }    
+        }
+        
+        
+    }
 }
