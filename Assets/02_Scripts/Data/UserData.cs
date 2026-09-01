@@ -15,6 +15,13 @@ public sealed class UserDataDto
 public partial class UserData : IDtoConvertible<UserDataDto>
 {
     private const long DefaultPersistentUid = 1000;
+    private static readonly Vector2Int[] AdjacentDirections =
+    {
+        Vector2Int.up,
+        Vector2Int.down,
+        Vector2Int.left,
+        Vector2Int.right
+    };
 
     public long NextPersistentUid { get; private set; }
 
@@ -77,6 +84,7 @@ public partial class UserData : IDtoConvertible<UserDataDto>
         ApplyPlaceableDtos(dto.Placeables);
 
         ApplyTileDtos(dto.TileDtos);
+        RebuildPlaceableConnections();
 
         if (dto.HeroDto != null)
             Hero.ApplyDto(dto.HeroDto);
@@ -202,6 +210,8 @@ public partial class UserData : IDtoConvertible<UserDataDto>
             return false;
         }
 
+        DisconnectPlaceable(placeableObjData);
+
         foreach (var tileData in tiles)
         {
             if (tileData.FurnitureUid == uid)
@@ -210,6 +220,7 @@ public partial class UserData : IDtoConvertible<UserDataDto>
             }
         }
         PlaceableObjs.Remove(uid);
+        UpdateConnectionsAroundTiles(tiles);
         return true;
 
     }
@@ -267,6 +278,7 @@ public partial class UserData : IDtoConvertible<UserDataDto>
         {
             tileData.FurnitureUid = placeableObjData.Uid;
         }
+        UpdateConnectionsAroundTiles(tileDatas, placeableObjData.Uid);
         return placeableObjData;
     }
 
@@ -284,11 +296,19 @@ public partial class UserData : IDtoConvertible<UserDataDto>
         {
             return false;
         }
+        if (currentTiles.Any(tileData => tileData.FurnitureUid != placeableUid))
+        {
+            return false;
+        }
+
+        DisconnectPlaceable(placeableObjData);
 
         foreach (TileData tileData in currentTiles)
         {
-            tileData.FurnitureUid = 0;
-            UpdatePlaceableConnect(tileData);
+            if (tileData.FurnitureUid == placeableUid)
+            {
+                tileData.FurnitureUid = 0;
+            }
         }
 
         placeableObjData.GridX = targetGridPos.x;
@@ -298,61 +318,124 @@ public partial class UserData : IDtoConvertible<UserDataDto>
         {
             targetTileData.FurnitureUid = placeableUid;
         }
+
+        UpdateConnectionsAroundTiles(currentTiles.Concat(targetTiles), placeableUid);
         return true;
     }
-    private void UpdatePlaceableConnect(TileData tileData)
+
+    private bool TryGetPlaceableObjFromTile(Vector2Int gridPos, out PlaceableObjData placeableObj)
     {
-        var gridPos = tileData.Position;
-        if (tileData.FurnitureUid == 0)
+        placeableObj = default;
+        if (!TryGetTileData(gridPos.x, gridPos.y, out var tileData))
+        {
+            return false;
+        }
+        if (!PlaceableObjs.TryGetValue(tileData.FurnitureUid, out placeableObj))
+        {
+            return false;
+        }
+        return true;
+    }
+
+    private void UpdateConnectionsAroundTiles(IEnumerable<TileData> tiles, long priorityUid = 0)
+    {
+        var affectedPlaceableUids = new HashSet<long>();
+        foreach (var tileData in tiles)
+        {
+            AddPlaceableUidFromTile(tileData.Position, affectedPlaceableUids);
+            foreach (var direction in AdjacentDirections)
+            {
+                AddPlaceableUidFromTile(tileData.Position + direction, affectedPlaceableUids);
+            }
+        }
+
+        if (priorityUid != 0 && affectedPlaceableUids.Remove(priorityUid))
+        {
+            UpdatePlaceableConnect(priorityUid);
+        }
+
+        foreach (var placeableUid in affectedPlaceableUids.OrderBy(uid => uid))
+        {
+            UpdatePlaceableConnect(placeableUid);
+        }
+    }
+
+    private void AddPlaceableUidFromTile(Vector2Int gridPos, HashSet<long> placeableUids)
+    {
+        if (TryGetPlaceableObjFromTile(gridPos, out var placeableObj))
+        {
+            placeableUids.Add(placeableObj.Uid);
+        }
+    }
+
+    private void UpdatePlaceableConnect(long placeableUid)
+    {
+        if (!PlaceableObjs.TryGetValue(placeableUid, out var placeableObjData) ||
+            placeableObjData is not ChairObjData chairObjData ||
+            chairObjData.ConnectedTableUid.Value != 0 ||
+            !TryGetPlaceableTiles(chairObjData.TableID, chairObjData.GridX, chairObjData.GridY, out var chairTiles))
         {
             return;
         }
-        else if (PlaceableObjs.TryGetValue(tileData.FurnitureUid, out var placeableObjData))
+
+        var checkedPlaceableUids = new HashSet<long>();
+        foreach (var chairTile in chairTiles)
         {
-            if (placeableObjData.TableData.furnituretype == FURNITURETYPE.CHAIR)
+            foreach (var direction in AdjacentDirections)
             {
-                ChairObjData chairObjData = placeableObjData as ChairObjData;
-                if (TryGetTileData(gridPos.x, gridPos.y, out var upTileData))
+                if (!TryGetPlaceableObjFromTile(chairTile.Position + direction, out var adjacentPlaceableObj) ||
+                    !checkedPlaceableUids.Add(adjacentPlaceableObj.Uid) ||
+                    adjacentPlaceableObj is not TableObjData tableObjData ||
+                    tableObjData.ConnectedChairUid.Value != 0)
                 {
-                    if (PlaceableObjs.TryGetValue(tileData.FurnitureUid, out var placeableOb))
-                    {
-                        if (placeableOb.TableData.furnituretype == FURNITURETYPE.TABLE)
-                        {
-                            chairObjData.ConnectedTableUid.Value = placeableOb.Uid;
-                        }
-                    }
+                    continue;
                 }
-                if (TryGetTileData(gridPos.x, gridPos.y, out var rightTileData))
-                {
-                    if (PlaceableObjs.TryGetValue(tileData.FurnitureUid, out var placeableOb))
-                    {
-                        if (placeableOb.TableData.furnituretype == FURNITURETYPE.TABLE)
-                        {
-                            chairObjData.ConnectedTableUid.Value = placeableOb.Uid;
-                        }
-                    }
-                }
-                if (TryGetTileData(gridPos.x, gridPos.y, out var leftTileData))
-                {
-                    if (PlaceableObjs.TryGetValue(tileData.FurnitureUid, out var placeableOb))
-                    {
-                        if (placeableOb.TableData.furnituretype == FURNITURETYPE.TABLE)
-                        {
-                            chairObjData.ConnectedTableUid.Value = placeableOb.Uid;
-                        }
-                    }
-                }
-                if (TryGetTileData(gridPos.x, gridPos.y, out var downTileData))
-                {
-                    if (PlaceableObjs.TryGetValue(tileData.FurnitureUid, out var placeableOb))
-                    {
-                        if (placeableOb.TableData.furnituretype == FURNITURETYPE.TABLE)
-                        {
-                            chairObjData.ConnectedTableUid.Value = placeableOb.Uid;
-                        }
-                    }
-                }
+
+                tableObjData.ConnectedChairUid.Value = chairObjData.Uid;
+                chairObjData.ConnectedTableUid.Value = tableObjData.Uid;
+                return;
             }
+        }
+    }
+
+    private void DisconnectPlaceable(PlaceableObjData placeableObjData)
+    {
+        if (placeableObjData is ChairObjData chairObjData)
+        {
+            long tableUid = chairObjData.ConnectedTableUid.Value;
+            chairObjData.ConnectedTableUid.Value = 0;
+
+            if (PlaceableObjs.TryGetValue(tableUid, out var connectedPlaceableObj) &&
+                connectedPlaceableObj is TableObjData connectedTableObjData &&
+                connectedTableObjData.ConnectedChairUid.Value == chairObjData.Uid)
+            {
+                connectedTableObjData.ConnectedChairUid.Value = 0;
+            }
+        }
+        else if (placeableObjData is TableObjData tableObjData)
+        {
+            long chairUid = tableObjData.ConnectedChairUid.Value;
+            tableObjData.ConnectedChairUid.Value = 0;
+
+            if (PlaceableObjs.TryGetValue(chairUid, out var connectedPlaceableObj) &&
+                connectedPlaceableObj is ChairObjData connectedChairObjData &&
+                connectedChairObjData.ConnectedTableUid.Value == tableObjData.Uid)
+            {
+                connectedChairObjData.ConnectedTableUid.Value = 0;
+            }
+        }
+    }
+
+    private void RebuildPlaceableConnections()
+    {
+        foreach (var placeableObjData in PlaceableObjs.Values)
+        {
+            DisconnectPlaceable(placeableObjData);
+        }
+
+        foreach (var placeableUid in PlaceableObjs.Keys.OrderBy(uid => uid))
+        {
+            UpdatePlaceableConnect(placeableUid);
         }
     }
 

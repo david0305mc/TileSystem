@@ -83,6 +83,19 @@ public class ChairObjData : PlaceableObjData
         base.UpdateStatus();
     }
 }
+public class TableObjData : PlaceableObjData
+{
+    public ReactiveProperty<long> ConnectedChairUid { get; set; } = new();
+
+    internal TableObjData(PlaceableObjDataDto dto) : base(dto)
+    {
+    }
+
+    public override void UpdateStatus()
+    {
+        base.UpdateStatus();
+    }
+}
 
 public class PlaceableObjData : IDtoConvertible<PlaceableObjDataDto>
 {
@@ -120,6 +133,9 @@ public class PlaceableObjData : IDtoConvertible<PlaceableObjDataDto>
         {
             case FURNITURETYPE.CHAIR:
                 placeableObjData = new ChairObjData(dto);
+                break;
+            case FURNITURETYPE.TABLE:
+                placeableObjData = new TableObjData(dto);
                 break;
             default:
                 placeableObjData = new PlaceableObjData(dto);
