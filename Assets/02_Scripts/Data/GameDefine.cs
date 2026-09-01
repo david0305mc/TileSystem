@@ -17,12 +17,22 @@ public static class GameDefine
 
     public readonly static Vector2Int[] ApproachDirections =
     {
+        Vector2Int.up + Vector2Int.right,
+        Vector2Int.up + Vector2Int.left,
+        Vector2Int.up,
+        Vector2Int.right,
+        Vector2Int.down,
+        Vector2Int.down+ Vector2Int.right,
+        Vector2Int.down+ Vector2Int.left,
+        Vector2Int.left
+    };
+    public readonly static Vector2Int[] AdjacentDirections =
+    {
         Vector2Int.up,
         Vector2Int.right,
         Vector2Int.down,
         Vector2Int.left
     };
-
 }
 
 public enum CurencyType
