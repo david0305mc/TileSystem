@@ -61,7 +61,7 @@ public partial class UserDataManager : Singleton<UserDataManager>
         {
             for (int y = gridY; y < gridY + furnitureInfo.sizey; y++)
             {
-                User.TryGetTileData(x, y, out var tileData);
+                User.TryGetTileData(new Vector2Int(x, y), out var tileData);
                 tileData.FurnitureUid = placeableObjData.Uid;
             }
         }

@@ -402,7 +402,7 @@ public class GridManager : SingletonMono<GridManager>
 
     public bool IsWalkable(Vector2Int position)
     {
-        if (UserDataManager.Instance.User.TryGetTileData(position.x, position.y, out var tileData))
+        if (UserDataManager.Instance.User.TryGetTileData(position, out var tileData))
         {
             return tileData.IsWalkable;
         }

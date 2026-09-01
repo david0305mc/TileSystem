@@ -26,7 +26,7 @@ public partial class UserData : IDtoConvertible<UserDataDto>
     public bool TryGetPlaceableObjData(long uid, out PlaceableObjData placeableObjData) => PlaceableObjs.TryGetValue(uid, out placeableObjData);
 
     public Dictionary<Vector2Int, TileData> Tiles { get; } = new();
-    public bool TryGetTileData(int x, int y, out TileData tileData) => Tiles.TryGetValue(new Vector2Int(x, y), out tileData);
+    public bool TryGetTileData(Vector2Int gridPos, out TileData tileData) => Tiles.TryGetValue(gridPos, out tileData);
 
     public HeroData Hero { get; private set; } = new();
 
@@ -231,7 +231,7 @@ public partial class UserData : IDtoConvertible<UserDataDto>
         {
             for (int y = gridY; y < gridY + sizeY; y++)
             {
-                if (!TryGetTileData(x, y, out var tileData))
+                if (!TryGetTileData(new Vector2Int(x, y), out var tileData))
                     return false;
 
                 result.Add(tileData);
@@ -244,7 +244,7 @@ public partial class UserData : IDtoConvertible<UserDataDto>
     public bool GetPlaceableDataFromGridPos(Vector2Int gridPos, out PlaceableObjData placeableObjData)
     {
         placeableObjData = default;
-        if (!TryGetTileData(gridPos.x, gridPos.y, out var tileData))
+        if (!TryGetTileData(gridPos, out var tileData))
             return false;
         if (!TryGetPlaceableObjData(tileData.FurnitureUid, out placeableObjData))
             return false;
@@ -322,7 +322,7 @@ public partial class UserData : IDtoConvertible<UserDataDto>
             if (placeableObjData.TableData.furnituretype == FURNITURETYPE.CHAIR)
             {
                 ChairObjData chairObjData = placeableObjData as ChairObjData;
-                if (TryGetTileData(gridPos.x, gridPos.y, out var upTileData))
+                if (TryGetTileData(gridPos, out var upTileData))
                 {
                     if (PlaceableObjs.TryGetValue(tileData.FurnitureUid, out var placeableOb))
                     {
@@ -332,7 +332,7 @@ public partial class UserData : IDtoConvertible<UserDataDto>
                         }
                     }
                 }
-                if (TryGetTileData(gridPos.x, gridPos.y, out var rightTileData))
+                if (TryGetTileData(gridPos, out var rightTileData))
                 {
                     if (PlaceableObjs.TryGetValue(tileData.FurnitureUid, out var placeableOb))
                     {
@@ -342,7 +342,7 @@ public partial class UserData : IDtoConvertible<UserDataDto>
                         }
                     }
                 }
-                if (TryGetTileData(gridPos.x, gridPos.y, out var leftTileData))
+                if (TryGetTileData(gridPos, out var leftTileData))
                 {
                     if (PlaceableObjs.TryGetValue(tileData.FurnitureUid, out var placeableOb))
                     {
@@ -352,7 +352,7 @@ public partial class UserData : IDtoConvertible<UserDataDto>
                         }
                     }
                 }
-                if (TryGetTileData(gridPos.x, gridPos.y, out var downTileData))
+                if (TryGetTileData(gridPos, out var downTileData))
                 {
                     if (PlaceableObjs.TryGetValue(tileData.FurnitureUid, out var placeableOb))
                     {
@@ -437,7 +437,7 @@ public partial class UserData : IDtoConvertible<UserDataDto>
         foreach (var directon in GameDefine.ApproachDirections)
         {
             Vector2Int tilePos = targetGrid + directon;
-            if (!TryGetTileData(tilePos.x, tilePos.y, out var tileData))
+            if (!TryGetTileData(tilePos, out var tileData))
             {
                 continue;
             }

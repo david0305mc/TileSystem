@@ -19,7 +19,7 @@ public class FloorTileObj : MonoBehaviour
         name = $"Floor_{gridPos.x}_{gridPos.y}";
         _gridPos = gridPos;
         _spriteRenderer.sprite = sprite;
-        UserDataManager.Instance.User.TryGetTileData(gridPos.x, gridPos.y, out var tileData);
+        UserDataManager.Instance.User.TryGetTileData(gridPos, out var tileData);
         GameManager.Instance.EditMode.Subscribe(mode =>
         {
             switch (mode)
