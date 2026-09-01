@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.Linq;
+using Mono.Cecil.Cil;
 using UnityEngine;
 
 public sealed class UserDataDto
@@ -238,6 +239,15 @@ public partial class UserData : IDtoConvertible<UserDataDto>
         }
 
         tiles = result;
+        return true;
+    }
+    public bool GetPlaceableDataFromGridPos(Vector2Int gridPos, out PlaceableObjData placeableObjData)
+    {
+        placeableObjData = default;
+        if (!TryGetTileData(gridPos.x, gridPos.y, out var tileData))
+            return false;
+        if (!TryGetPlaceableObjData(tileData.FurnitureUid, out placeableObjData))
+            return false;
         return true;
     }
     public PlaceableObjData CreatePlaceableObj(int tid, int gridX, int gridY)
