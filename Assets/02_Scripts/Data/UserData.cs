@@ -198,7 +198,8 @@ public partial class UserData : IDtoConvertible<UserDataDto>
             return false;
         }
 
-        if (!TryGetPlaceableTiles(placeableObjData.TableData.id, placeableObjData.GridX, placeableObjData.GridY, out var tiles))
+        var gridPosition = new Vector2Int(placeableObjData.GridX, placeableObjData.GridY);
+        if (!TryGetPlaceableTiles(placeableObjData.TableData.id, gridPosition, out var tiles))
         {
             return false;
         }
@@ -214,7 +215,7 @@ public partial class UserData : IDtoConvertible<UserDataDto>
         return true;
 
     }
-    public bool TryGetPlaceableTiles(int furnitureId, int gridX, int gridY, out List<TileData> tiles)
+    public bool TryGetPlaceableTiles(int furnitureId, Vector2Int gridPosition, out List<TileData> tiles)
     {
         tiles = null;
 
@@ -227,9 +228,9 @@ public partial class UserData : IDtoConvertible<UserDataDto>
 
         var result = new List<TileData>(sizeX * sizeY);
 
-        for (int x = gridX; x < gridX + sizeX; x++)
+        for (int x = gridPosition.x; x < gridPosition.x + sizeX; x++)
         {
-            for (int y = gridY; y < gridY + sizeY; y++)
+            for (int y = gridPosition.y; y < gridPosition.y + sizeY; y++)
             {
                 if (!TryGetTileData(new Vector2Int(x, y), out var tileData))
                     return false;
@@ -290,7 +291,8 @@ public partial class UserData : IDtoConvertible<UserDataDto>
         {
             return false;
         }
-        if (!TryGetPlaceableTiles(placeableObjData.TableID, placeableObjData.GridX, placeableObjData.GridY, out var currentTiles))
+        var currentGridPosition = new Vector2Int(placeableObjData.GridX, placeableObjData.GridY);
+        if (!TryGetPlaceableTiles(placeableObjData.TableID, currentGridPosition, out var currentTiles))
         {
             return false;
         }
@@ -373,7 +375,7 @@ public partial class UserData : IDtoConvertible<UserDataDto>
 
     private bool TryGetAvailablePlaceableTiles(int furnitureId, Vector2Int gridPosition, long ignoredFurnitureUid, out List<TileData> tiles)
     {
-        if (!TryGetPlaceableTiles(furnitureId, gridPosition.x, gridPosition.y, out tiles))
+        if (!TryGetPlaceableTiles(furnitureId, gridPosition, out tiles))
         {
             return false;
         }
