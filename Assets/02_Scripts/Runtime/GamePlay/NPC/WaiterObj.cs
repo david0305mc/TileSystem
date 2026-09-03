@@ -1,4 +1,5 @@
 using System.Threading;
+using System.Threading.Tasks;
 using Cysharp.Threading.Tasks;
 using UnityEngine;
 using UnityHFSM;
@@ -113,10 +114,12 @@ public class WaiterObj : NpcObj
         RequestServingState();
     }
 
-    private UniTask ServingStateAsync(CancellationToken cancellationToken)
+    private async UniTask ServingStateAsync(CancellationToken cancellationToken)
     {
         SetAnimation("idle");
-        return UniTask.CompletedTask;
+        // return UniTask.CompletedTask;
+        await UniTask.Yield();
+        RequestReturningToDisplayStandState();
     }
 
     private async UniTask ReturningToDisplayStandStateAsync(CancellationToken cancellationToken)

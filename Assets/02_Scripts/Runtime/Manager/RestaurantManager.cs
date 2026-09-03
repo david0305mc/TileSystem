@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 
 public class RestaurantManager : SingletonMono<RestaurantManager>
@@ -22,7 +23,7 @@ public class RestaurantManager : SingletonMono<RestaurantManager>
 
     void Start()
     {
-        // GenerateCustomerRandom();
+        GenerateCustomerRandom();
         CreateWaiterObj(new Vector2Int(3, 3));
     }
 
@@ -147,9 +148,17 @@ public class RestaurantManager : SingletonMono<RestaurantManager>
             {
                 return false;
             }
-        }, () =>
+        }, (chairUid) =>
         {
-
+            if(UserDataManager.Instance.User.TryGetPlaceableObjData(chairUid, out var placeableObjData) 
+            && placeableObjData is ChairObjData chairObjData)
+            {
+                var waiterObj = _waiterObjs.FirstOrDefault();
+                if (waiterObj.Value != default)
+                {
+                    waiterObj.Value.RequestMovingToTable(chairObjData.ConnectedTableUid.Value);
+                }
+            }
         }, () =>
         {
             UserDataManager.Instance.User.TryReleaseChair(customerData.Uid);

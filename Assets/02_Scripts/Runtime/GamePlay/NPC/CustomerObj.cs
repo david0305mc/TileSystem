@@ -36,7 +36,7 @@ public class CustomerObj : NpcObj
     private Action _showHud;
     private Action _hideHud;
     private TryMoveToEmptyChair _tryMoveToEmptyChair;
-    private Action _sitAction;
+    private System.Action<long> _sitAction;
     private Action _exitingAction;
 
     public void Initialize(
@@ -45,7 +45,7 @@ public class CustomerObj : NpcObj
         Action showHud,
         Action hideHud,
         TryMoveToEmptyChair tryMoveToEmptyChair,
-        Action sitAction,
+        System.Action<long> sitAction,
         Action exitingAction)
     {
         _showHud = showHud;
@@ -173,7 +173,7 @@ public class CustomerObj : NpcObj
         }
 
         _showHud?.Invoke();
-        _sitAction?.Invoke();
+        _sitAction?.Invoke(_targetChair.Uid);
 
         transform.position = _targetChair.transform.position;
         SetAnimation("dance");
