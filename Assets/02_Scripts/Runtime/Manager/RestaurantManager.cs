@@ -22,7 +22,8 @@ public class RestaurantManager : SingletonMono<RestaurantManager>
 
     void Start()
     {
-        GenerateCustomerRandom();
+        // GenerateCustomerRandom();
+        CreateWaiterObj(new Vector2Int(3, 3));
     }
 
     private void GenerateCustomerRandom()
@@ -55,6 +56,7 @@ public class RestaurantManager : SingletonMono<RestaurantManager>
 
         waiterObj.transform.localPosition = _gridManager.GridToLocalPosition(gridPosition, Vector2Int.one);
         waiterObj.transform.localRotation = Quaternion.identity;
+        // waiterObj.Initialize
 
         
         return waiterObj;

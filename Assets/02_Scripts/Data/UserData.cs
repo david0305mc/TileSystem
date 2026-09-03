@@ -28,6 +28,7 @@ public partial class UserData : IDtoConvertible<UserDataDto>
     public bool TryGetTileData(Vector2Int gridPos, out TileData tileData) => Tiles.TryGetValue(gridPos, out tileData);
 
     public HeroData Hero { get; private set; } = new();
+    public PlaceableObjData DisplayStandData { get; private set; } = default;
 
     public void CreateNewUser()
     {
@@ -277,6 +278,10 @@ public partial class UserData : IDtoConvertible<UserDataDto>
             return null;
 
         PlaceableObjs.Add(uid, placeableObjData);
+        if (placeableObjData.TableData.furnituretype == FURNITURETYPE.DISPLAYSTAND)
+        {
+            DisplayStandData = placeableObjData;
+        }
         foreach (var tileData in tileDatas)
         {
             tileData.FurnitureUid = placeableObjData.Uid;

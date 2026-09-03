@@ -16,4 +16,5 @@ public enum FURNITURETYPE
 	CHAIR                        = 2         ,
 	STOVE                        = 3         ,
 	DECORATION                   = 4         ,
+	DISPLAYSTAND                 = 5         ,
 }

@@ -1061,6 +1061,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::RestaurantManager
   dontDestroyOnLoad: 0
   _customerObjPrefab: {fileID: 6470793120314829604, guid: 30610c5e95f9839459313801ee86041d, type: 3}
+  _waiterObjPrefab: {fileID: 4582825092954008385, guid: 9a9da888c1482ba4393f7a34473ab617, type: 3}
   _gridManager: {fileID: 1349782990}
   _overHeadUIManager: {fileID: 853770141}
 --- !u!1 &961739749
