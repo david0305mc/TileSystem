@@ -2,7 +2,7 @@ using UnityEngine;
 
 public class RestaurantManager : SingletonMono<RestaurantManager>
 {
-    [SerializeField] private NpcObj _npcObjPrefab;
+    [SerializeField] private CustomerObj _customerObjPrefab;
     [SerializeField] private GridManager _gridManager;
     [SerializeField] private OverHeadUIManager _overHeadUIManager;
 
@@ -44,13 +44,13 @@ public class RestaurantManager : SingletonMono<RestaurantManager>
 
     public NpcObj CreateNpc(Vector2Int gridPosition)
     {
-        if (_npcObjPrefab == null || !_gridManager.IsWalkable(gridPosition))
+        if (_customerObjPrefab == null || !_gridManager.IsWalkable(gridPosition))
         {
             return null;
         }
 
         var customerData = UserDataManager.Instance.User.CreateCustomer();
-        var npc = Lean.Pool.LeanPool.Spawn(_npcObjPrefab, _gridManager.GridRoot);
+        var npc = Lean.Pool.LeanPool.Spawn(_customerObjPrefab, _gridManager.GridRoot);
 
         npc.transform.localPosition = _gridManager.GridToWorld(gridPosition, Vector2Int.one);
         npc.transform.localRotation = Quaternion.identity;
