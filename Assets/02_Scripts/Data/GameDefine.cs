@@ -57,3 +57,9 @@ public enum EditMode
     Normal,
     Floor,
 }
+
+public enum WaiterTaskType
+{
+    ServeFood,
+    CleanFood,
+}
