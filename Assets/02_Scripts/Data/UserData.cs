@@ -1,6 +1,5 @@
 using System.Collections.Generic;
 using System.Linq;
-using Unity.VisualScripting;
 using UnityEngine;
 
 public sealed class UserDataDto
@@ -45,6 +44,7 @@ public partial class UserData : IDtoConvertible<UserDataDto>
         Skills.Clear();
         Tiles.Clear();
         PlaceableObjs.Clear();
+        DisplayStandData = null;
 
         Hero.ApplyDto(new HeroDataDto
         {
@@ -132,6 +132,7 @@ public partial class UserData : IDtoConvertible<UserDataDto>
     private void ApplyPlaceableDtos(Dictionary<long, PlaceableObjDataDto> placeableDtos)
     {
         PlaceableObjs.Clear();
+        DisplayStandData = null;
 
         if (placeableDtos == null)
             return;
@@ -148,6 +149,7 @@ public partial class UserData : IDtoConvertible<UserDataDto>
             }
 
             PlaceableObjs[pair.Key] = placeableObjData;
+            TryAssignDisplayStand(placeableObjData);
         }
     }
 
@@ -216,6 +218,12 @@ public partial class UserData : IDtoConvertible<UserDataDto>
 
         DisconnectPlaceableData(placeableObjData);
         PlaceableObjs.Remove(uid);
+
+        if (DisplayStandData?.Uid == uid)
+        {
+            RebuildDisplayStandData();
+        }
+
         UpdatePlaceableConnectAroundTiles(tiles);
         return true;
     }
@@ -279,10 +287,7 @@ public partial class UserData : IDtoConvertible<UserDataDto>
             return null;
 
         PlaceableObjs.Add(uid, placeableObjData);
-        if (placeableObjData.TableData.furnituretype == FURNITURETYPE.DISPLAYSTAND)
-        {
-            DisplayStandData = placeableObjData;
-        }
+        TryAssignDisplayStand(placeableObjData);
         foreach (var tileData in tileDatas)
         {
             tileData.FurnitureUid = placeableObjData.Uid;
@@ -421,6 +426,13 @@ public partial class UserData : IDtoConvertible<UserDataDto>
     }
     public List<Vector2Int> GetApproachGridPositions(PlaceableObjData placeableData)
     {
+        var approachPositions = new List<Vector2Int>();
+
+        if (placeableData?.TableData == null)
+        {
+            return approachPositions;
+        }
+
         var gridPosition = new Vector2Int(
             placeableData.GridX,
             placeableData.GridY);
@@ -430,20 +442,20 @@ public partial class UserData : IDtoConvertible<UserDataDto>
                 gridPosition,
                 out var footprintTiles))
         {
-            return new List<Vector2Int>();
+            return approachPositions;
         }
 
         var footprintPositions = footprintTiles
             .Select(tile => tile.Position)
-            .ToList();
+            .ToHashSet();
 
-        var approachPositions = new HashSet<Vector2Int>();
+        var addedPositions = new HashSet<Vector2Int>();
 
-        foreach (var footprintPosition in footprintPositions)
+        foreach (var footprintTile in footprintTiles)
         {
-            foreach (var direction in GameDefine.AdjacentDirections)
+            foreach (var direction in GameDefine.ApproachDirections)
             {
-                var approachPosition = footprintPosition + direction;
+                var approachPosition = footprintTile.Position + direction;
 
                 // 가구가 차지하고 있는 타일 제외
                 if (footprintPositions.Contains(approachPosition))
@@ -457,27 +469,40 @@ public partial class UserData : IDtoConvertible<UserDataDto>
                 if (!tileData.IsWalkable)
                     continue;
 
-                approachPositions.Add(approachPosition);
+                if (addedPositions.Add(approachPosition))
+                {
+                    approachPositions.Add(approachPosition);
+                }
             }
         }
 
-        return approachPositions.ToList();
+        return approachPositions;
     }
 
-    public IEnumerable<Vector2Int> GetApproachGridPos(Vector2Int targetGrid)
+    public bool TryGetDisplayStandData(out PlaceableObjData displayStandData)
     {
-        foreach (var directon in GameDefine.ApproachDirections)
+        displayStandData = DisplayStandData;
+        return displayStandData != null;
+    }
+
+    private void TryAssignDisplayStand(PlaceableObjData placeableObjData)
+    {
+        if (placeableObjData?.TableData?.furnituretype != FURNITURETYPE.DISPLAYSTAND)
+            return;
+
+        if (DisplayStandData == null || placeableObjData.Uid < DisplayStandData.Uid)
         {
-            Vector2Int tilePos = targetGrid + directon;
-            if (!TryGetTileData(tilePos, out var tileData))
-            {
-                continue;
-            }
+            DisplayStandData = placeableObjData;
+        }
+    }
 
-            if (!tileData.IsWalkable)
-                continue;
+    private void RebuildDisplayStandData()
+    {
+        DisplayStandData = null;
 
-            yield return tilePos;
+        foreach (var placeableObjData in PlaceableObjs.Values)
+        {
+            TryAssignDisplayStand(placeableObjData);
         }
     }
 

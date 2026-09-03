@@ -51,15 +51,45 @@ public class RestaurantManager : SingletonMono<RestaurantManager>
     }
     public WaiterObj CreateWaiterObj(Vector2Int gridPosition)
     {
+        if (_waiterObjPrefab == null
+            || _gridManager == null
+            || !_gridManager.IsWalkable(gridPosition))
+        {
+            return null;
+        }
+
         var waiterData = UserDataManager.Instance.User.CreateWaiter();
         var waiterObj = Lean.Pool.LeanPool.Spawn(_waiterObjPrefab, _gridManager.GridRoot);
 
         waiterObj.transform.localPosition = _gridManager.GridToLocalPosition(gridPosition, Vector2Int.one);
         waiterObj.transform.localRotation = Quaternion.identity;
-        // waiterObj.Initialize
+        waiterObj.Initialize(waiterData.Uid, gridPosition);
+        _waiterObjs.Add(waiterObj.Uid, waiterObj);
 
-        
         return waiterObj;
+    }
+
+    public bool TryGetWaiterObj(long uid, out WaiterObj waiterObj)
+    {
+        return _waiterObjs.TryGetValue(uid, out waiterObj);
+    }
+
+    public bool RemoveWaiterObj(long uid)
+    {
+        if (!_waiterObjs.Remove(uid, out var waiterObj))
+        {
+            return false;
+        }
+
+        UserDataManager.Instance.User.DeleteWaiter(uid);
+
+        if (waiterObj != null)
+        {
+            waiterObj.Deinitialize();
+            Lean.Pool.LeanPool.Despawn(waiterObj);
+        }
+
+        return true;
     }
 
     public CustomerObj CreateCustomerObj(Vector2Int gridPosition)
@@ -163,7 +193,7 @@ public class RestaurantManager : SingletonMono<RestaurantManager>
             if (placeableData.IsOccupied || placeableData.IsReserved)
                 continue;
 
-            foreach (var gridPos in user.GetApproachGridPos(new Vector2Int(placeableData.GridX, placeableData.GridY)))
+            foreach (var gridPos in user.GetApproachGridPositions(placeableData))
             {
                 if (!_gridManager.TryFindWorldPath(npcObj.transform.position, _gridManager.GridToWorldPosition(gridPos), out var _param))
                 {
