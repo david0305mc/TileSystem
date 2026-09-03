@@ -113,7 +113,7 @@ public class RestaurantManager : SingletonMono<RestaurantManager>
         var user = UserDataManager.Instance.User;
         foreach (var placeableData in user.PlaceableObjs.Values)
         {
-            if (placeableData.TableData.furnituretype != FURNITURETYPE.CHAIR)
+            if (placeableData is not ChairObjData chairObjData || chairObjData.ConnectedTableUid.Value == 0)
                 continue;
             if (placeableData.IsOccupied || placeableData.IsReserved)
                 continue;
