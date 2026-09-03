@@ -494,12 +494,12 @@ public class GridManager : SingletonMono<GridManager>
 
     public Vector3 GridToLocalPosition(Vector2Int gridPosition, Vector2Int footprintSize)
     {
-        return GridUtil.GridToWorld(gridPosition, _tileWidth, _tileHeight) + GetFootprintCenterOffset(footprintSize);
+        return GridUtil.GridToLocalPosition(gridPosition, _tileWidth, _tileHeight) + GetFootprintCenterOffset(footprintSize);
     }
     private Vector3 GetFootprintCenterOffset(Vector2Int footprintSize)
     {
         var farthestTileOffset = footprintSize - Vector2Int.one;
-        return GridUtil.GridToWorld(farthestTileOffset, _tileWidth, _tileHeight) * 0.5f;
+        return GridUtil.GridToLocalPosition(farthestTileOffset, _tileWidth, _tileHeight) * 0.5f;
     }
 
 }

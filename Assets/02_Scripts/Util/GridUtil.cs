@@ -12,7 +12,7 @@ public static class GridUtil
     //    (0,1)       (1,0)
     //       \         /
     //          (0,0)
-    public static Vector3 GridToWorld(Vector2Int gridPosition, float tileWidth, float tileHeight)
+    public static Vector3 GridToLocalPosition(Vector2Int gridPosition, float tileWidth, float tileHeight)
     {
         var worldX = (gridPosition.x - gridPosition.y) * tileWidth * 0.5f;
         var worldY =
