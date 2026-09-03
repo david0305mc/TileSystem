@@ -53,7 +53,7 @@ public class RestaurantManager : SingletonMono<RestaurantManager>
         var waiterData = UserDataManager.Instance.User.CreateWaiter();
         var waiterObj = Lean.Pool.LeanPool.Spawn(_waiterObjPrefab, _gridManager.GridRoot);
 
-        waiterObj.transform.localPosition = _gridManager.GridToWorld(gridPosition, Vector2Int.one);
+        waiterObj.transform.localPosition = _gridManager.GridToLocalPosition(gridPosition, Vector2Int.one);
         waiterObj.transform.localRotation = Quaternion.identity;
 
         
@@ -70,7 +70,7 @@ public class RestaurantManager : SingletonMono<RestaurantManager>
         var customerData = UserDataManager.Instance.User.CreateCustomer();
         var customerObj = Lean.Pool.LeanPool.Spawn(_customerObjPrefab, _gridManager.GridRoot);
 
-        customerObj.transform.localPosition = _gridManager.GridToWorld(gridPosition, Vector2Int.one);
+        customerObj.transform.localPosition = _gridManager.GridToLocalPosition(gridPosition, Vector2Int.one);
         customerObj.transform.localRotation = Quaternion.identity;
         customerObj.Initialize(customerData.Uid, gridPosition, () =>
         {
