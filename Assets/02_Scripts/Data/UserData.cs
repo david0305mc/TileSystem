@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.Linq;
+using Unity.VisualScripting;
 using UnityEngine;
 
 public sealed class UserDataDto
@@ -200,7 +201,7 @@ public partial class UserData : IDtoConvertible<UserDataDto>
         }
 
         var gridPosition = new Vector2Int(placeableObjData.GridX, placeableObjData.GridY);
-        if (!TryGetPlaceableTiles(placeableObjData.TableData.id, gridPosition, out var tiles))
+        if (!TryGetFootprintTiles(placeableObjData.TableData.id, gridPosition, out var tiles))
         {
             return false;
         }
@@ -219,7 +220,7 @@ public partial class UserData : IDtoConvertible<UserDataDto>
         return true;
     }
 
-    public bool TryGetPlaceableTiles(int furnitureId, Vector2Int gridPosition, out List<TileData> tiles)
+    public bool TryGetFootprintTiles(int furnitureId, Vector2Int gridPosition, out List<TileData> tiles)
     {
         tiles = null;
 
@@ -302,7 +303,7 @@ public partial class UserData : IDtoConvertible<UserDataDto>
             return false;
         }
         var oldGridPosition = new Vector2Int(placeableObjData.GridX, placeableObjData.GridY);
-        if (!TryGetPlaceableTiles(placeableObjData.TableID, oldGridPosition, out var oldTiles))
+        if (!TryGetFootprintTiles(placeableObjData.TableID, oldGridPosition, out var oldTiles))
         {
             return false;
         }
@@ -360,7 +361,7 @@ public partial class UserData : IDtoConvertible<UserDataDto>
 
     private bool TryGetAvailablePlaceableTiles(int furnitureId, Vector2Int gridPosition, long ignoredFurnitureUid, out List<TileData> tiles)
     {
-        if (!TryGetPlaceableTiles(furnitureId, gridPosition, out tiles))
+        if (!TryGetFootprintTiles(furnitureId, gridPosition, out tiles))
         {
             return false;
         }
@@ -417,6 +418,50 @@ public partial class UserData : IDtoConvertible<UserDataDto>
         chair.OccupiedNpcUId = 0;
 
         return true;
+    }
+    public List<Vector2Int> GetApproachGridPositions(PlaceableObjData placeableData)
+    {
+        var gridPosition = new Vector2Int(
+            placeableData.GridX,
+            placeableData.GridY);
+
+        if (!TryGetFootprintTiles(
+                placeableData.TableData.id,
+                gridPosition,
+                out var footprintTiles))
+        {
+            return new List<Vector2Int>();
+        }
+
+        var footprintPositions = footprintTiles
+            .Select(tile => tile.Position)
+            .ToList();
+
+        var approachPositions = new HashSet<Vector2Int>();
+
+        foreach (var footprintPosition in footprintPositions)
+        {
+            foreach (var direction in GameDefine.AdjacentDirections)
+            {
+                var approachPosition = footprintPosition + direction;
+
+                // 가구가 차지하고 있는 타일 제외
+                if (footprintPositions.Contains(approachPosition))
+                    continue;
+
+                // 그리드 밖 제외
+                if (!TryGetTileData(approachPosition, out var tileData))
+                    continue;
+
+                // NPC가 접근할 수 없는 타일 제외
+                if (!tileData.IsWalkable)
+                    continue;
+
+                approachPositions.Add(approachPosition);
+            }
+        }
+
+        return approachPositions.ToList();
     }
 
     public IEnumerable<Vector2Int> GetApproachGridPos(Vector2Int targetGrid)
@@ -498,7 +543,7 @@ public partial class UserData : IDtoConvertible<UserDataDto>
             return;
         }
 
-        if (!TryGetPlaceableTiles(chairObjData.TableData.id, new Vector2Int(chairObjData.GridX, chairObjData.GridY), out var chairTiles))
+        if (!TryGetFootprintTiles(chairObjData.TableData.id, new Vector2Int(chairObjData.GridX, chairObjData.GridY), out var chairTiles))
         {
             return;
         }

@@ -165,7 +165,6 @@ public class RestaurantManager : SingletonMono<RestaurantManager>
 
             foreach (var gridPos in user.GetApproachGridPos(new Vector2Int(placeableData.GridX, placeableData.GridY)))
             {
-
                 if (!_gridManager.TryFindWorldPath(npcObj.transform.position, _gridManager.GridToWorldPosition(gridPos), out var _param))
                 {
                     continue;

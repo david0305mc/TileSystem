@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using System.Threading;
 using Cysharp.Threading.Tasks;
 using UnityEngine;
@@ -8,13 +9,16 @@ public class WaiterObj : NpcObj
     public enum WaiterState
     {
         Idle,
-        MovingToDisplayStand,
+        MovingToTable,
         Serving,
+        ReturningToDisplayStand,
     }
 
     private static readonly string IdleState = nameof(WaiterState.Idle);
-    private static readonly string MovingToDisplayState = nameof(WaiterState.MovingToDisplayStand);
+    private static readonly string MovingToTable = nameof(WaiterState.MovingToTable);
     private static readonly string ServingState = nameof(WaiterState.Serving);
+    private static readonly string ReturningToDisplayStandState = nameof(WaiterState.ReturningToDisplayStand);
+
 
     [Header("Behaviour")]
 
@@ -46,19 +50,41 @@ public class WaiterObj : NpcObj
         {
             return;
         }
-        
-        
 
-        // if (_tryMoveToEmptyChair != null &&
-        //     _tryMoveToEmptyChair(
-        //         out var targetChair,
-        //         out var targetGridPosition))
-        // {
-        //     RequestMovingToChairState(targetChair, targetGridPosition);
-        //     return;
-        // }
+        List<Vector2Int> approchGrids = UserDataManager.Instance.User.GetApproachGridPositions(UserDataManager.Instance.User.DisplayStandData);
+        if (!approchGrids.Contains(CurrentGridPosition))
+        {
+            RequestReturningToDisplayStandState();
+        }
+    }
+    private async UniTask MovingToTableStateAsync(CancellationToken cancellationToken)
+    {
 
-        // RequestWanderState();
+    }
+    private async UniTask ServingStateAsync(CancellationToken cancellationToken)
+    {
+
+    }
+    private async UniTask ReturningToDisplayStandStateAsync(CancellationToken cancellationToken)
+    {
+
+    }
+    private void RequestIdleState()
+    {
+        _fsm?.RequestStateChange(IdleState);
     }
 
+    public void RequestMovingToTable(long talbeUid)
+    {
+        _fsm?.RequestStateChange(MovingToTable);
+    }
+
+    private void RequestServingState()
+    {
+        _fsm?.RequestStateChange(ServingState);
+    }
+    private void RequestReturningToDisplayStandState()
+    {
+        _fsm?.RequestStateChange(ReturningToDisplayStandState);
+    }
 }
