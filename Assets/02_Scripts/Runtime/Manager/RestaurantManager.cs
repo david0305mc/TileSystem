@@ -9,6 +9,7 @@ public class RestaurantManager : SingletonMono<RestaurantManager>
     [SerializeField] private OverHeadUIManager _overHeadUIManager;
 
     private readonly Dictionary<long, CustomerObj> _customerObjs = new();
+    private readonly Dictionary<long, WaiterObj> _waiterObjs = new();
 
     protected override void Awake()
     {
@@ -46,6 +47,17 @@ public class RestaurantManager : SingletonMono<RestaurantManager>
 
             createdCount++;
         }
+    }
+    public WaiterObj CreateWaiterObj(Vector2Int gridPosition)
+    {
+        var waiterData = UserDataManager.Instance.User.CreateWaiter();
+        var waiterObj = Lean.Pool.LeanPool.Spawn(_waiterObjPrefab, _gridManager.GridRoot);
+
+        waiterObj.transform.localPosition = _gridManager.GridToWorld(gridPosition, Vector2Int.one);
+        waiterObj.transform.localRotation = Quaternion.identity;
+
+        
+        return waiterObj;
     }
 
     public CustomerObj CreateCustomerObj(Vector2Int gridPosition)
