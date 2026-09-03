@@ -3,6 +3,7 @@ using UnityEngine;
 public class RestaurantManager : SingletonMono<RestaurantManager>
 {
     [SerializeField] private CustomerObj _customerObjPrefab;
+    [SerializeField] private WaiterObj _waiterObjPrefab;
     [SerializeField] private GridManager _gridManager;
     [SerializeField] private OverHeadUIManager _overHeadUIManager;
 

@@ -213,7 +213,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::CustomerObj
   _hudAnchor: {fileID: 4244715289871894441}
-  skeletonAnimation: {fileID: 7994562901084656207}
+  _skeletonAnimation: {fileID: 7994562901084656207}
   _baseSkin: skin-base
   _hairSkins:
   - hair/blue
@@ -248,9 +248,9 @@ MonoBehaviour:
   - accessories/hat-red-yellow
   - accessories/scarf
   _accessoryChance: 0.5
+  _waitDuration: 2
   _moveSpeed: 2
   _arrivalDistance: 0.02
-  _waitDuration: 2
 --- !u!1 &7517336408746888774
 GameObject:
   m_ObjectHideFlags: 0
