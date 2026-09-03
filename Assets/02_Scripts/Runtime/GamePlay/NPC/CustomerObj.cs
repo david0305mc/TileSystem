@@ -69,6 +69,24 @@ public class CustomerObj : NpcObj
         }
     }
 
+    public void Deinitialize()
+    {
+        StopMovement();
+
+        _fsm?.OnExit();
+        _fsm = null;
+
+        _hideHud?.Invoke();
+        _exitingAction?.Invoke();
+
+        _targetChair = null;
+        _showHud = null;
+        _hideHud = null;
+        _tryMoveToEmptyChair = null;
+        _sitAction = null;
+        _exitingAction = null;
+    }
+
     private void InitializeFsm()
     {
         _fsm?.OnExit();
@@ -248,9 +266,8 @@ public class CustomerObj : NpcObj
         _fsm?.OnLogic();
     }
 
-    private void OnDestroy()
+    private void OnDisable()
     {
-        _fsm?.OnExit();
-        _fsm = null;
+        Deinitialize();
     }
 }

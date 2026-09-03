@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using UnityEngine;
 
 public class RestaurantManager : SingletonMono<RestaurantManager>
@@ -6,6 +7,8 @@ public class RestaurantManager : SingletonMono<RestaurantManager>
     [SerializeField] private WaiterObj _waiterObjPrefab;
     [SerializeField] private GridManager _gridManager;
     [SerializeField] private OverHeadUIManager _overHeadUIManager;
+
+    private readonly Dictionary<long, CustomerObj> _customerObjs = new();
 
     protected override void Awake()
     {
@@ -36,8 +39,10 @@ public class RestaurantManager : SingletonMono<RestaurantManager>
                 continue;
             }
 
-            var npcObj = CreateCustomerObj(gridPosition);
-            // npcObj.MoveTo(GetRandomGridPos());
+            if (CreateCustomerObj(gridPosition) == null)
+            {
+                continue;
+            }
 
             createdCount++;
         }
@@ -86,7 +91,7 @@ public class RestaurantManager : SingletonMono<RestaurantManager>
                     return false;
                 }
 
-                if(!UserDataManager.Instance.User.TryReserveChair(chair.Uid, customerData.Uid))
+                if (!UserDataManager.Instance.User.TryReserveChair(chair.Uid, customerData.Uid))
                 {
                     return false;
                 }
@@ -105,8 +110,33 @@ public class RestaurantManager : SingletonMono<RestaurantManager>
         {
             UserDataManager.Instance.User.TryReleaseChair(customerData.Uid);
         });
+        _customerObjs.Add(customerObj.Uid, customerObj);
         return customerObj;
     }
+
+    public bool TryGetCustomerObj(long uid, out CustomerObj customerObj)
+    {
+        return _customerObjs.TryGetValue(uid, out customerObj);
+    }
+
+    public bool RemoveCustomerObj(long uid)
+    {
+        if (!_customerObjs.Remove(uid, out var customerObj))
+        {
+            return false;
+        }
+
+        UserDataManager.Instance.User.DeleteCustomer(uid);
+
+        if (customerObj != null)
+        {
+            customerObj.Deinitialize();
+            Lean.Pool.LeanPool.Despawn(customerObj);
+        }
+
+        return true;
+    }
+
     private bool TryFindReachableEmptyChair(NpcObj npcObj, out PlaceableObjData chair, out Vector2Int approachGridPos)
     {
         chair = default;
@@ -121,8 +151,8 @@ public class RestaurantManager : SingletonMono<RestaurantManager>
 
             foreach (var gridPos in user.GetApproachGridPos(new Vector2Int(placeableData.GridX, placeableData.GridY)))
             {
-                
-                if(!_gridManager.TryFindWorldPath(npcObj.transform.position, _gridManager.GridToWorldPosition(gridPos), out var _param))
+
+                if (!_gridManager.TryFindWorldPath(npcObj.transform.position, _gridManager.GridToWorldPosition(gridPos), out var _param))
                 {
                     continue;
                 }
