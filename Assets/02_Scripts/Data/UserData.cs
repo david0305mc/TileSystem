@@ -1,6 +1,5 @@
 using System.Collections.Generic;
 using System.Linq;
-using Mono.Cecil.Cil;
 using R3;
 using UnityEngine;
 
@@ -295,8 +294,8 @@ public partial class UserData : IDtoConvertible<UserDataDto>
         {
             return false;
         }
-        var currentGridPosition = new Vector2Int(placeableObjData.GridX, placeableObjData.GridY);
-        if (!TryGetPlaceableTiles(placeableObjData.TableID, currentGridPosition, out var oldTiles))
+        var oldGridPosition = new Vector2Int(placeableObjData.GridX, placeableObjData.GridY);
+        if (!TryGetPlaceableTiles(placeableObjData.TableID, oldGridPosition, out var oldTiles))
         {
             return false;
         }
@@ -314,8 +313,48 @@ public partial class UserData : IDtoConvertible<UserDataDto>
         {
             targetTileData.FurnitureUid = placeableUid;
         }
-        UpdatePlaceableConnect(placeableUid);
+        UpdatePlaceableConnectAroundTiles(oldTiles.Concat(newTiles), placeableUid);
         return true;
+    }
+    private void AddPlaceableUidFromGrid(Vector2Int gridPos, HashSet<long> affectedPlaceableUids)
+    {
+        if (TryGetPlaceableDataFromGridPos(gridPos, out var placeableObjData))
+        {
+            affectedPlaceableUids.Add(placeableObjData.Uid);
+        }
+    }
+    private void UpdatePlaceableConnectAroundTiles(IEnumerable<TileData> tileDatas, long priorityUid = 0)
+    {
+        HashSet<long> affectedPlaceableUids = new HashSet<long>();
+        foreach (var tileData in tileDatas)
+        {
+            AddPlaceableUidFromGrid(tileData.Position, affectedPlaceableUids);
+            foreach (var dir in GameDefine.AdjacentDirections)
+            {
+                AddPlaceableUidFromGrid(tileData.Position + dir, affectedPlaceableUids);
+            }
+        }
+        if (priorityUid != 0)
+        {
+            UpdatePlaceableConnect(priorityUid);
+            affectedPlaceableUids.Remove(priorityUid);
+        }
+        
+        foreach (var uid in affectedPlaceableUids)
+        {
+            UpdatePlaceableConnect(uid);
+        }
+    }
+    private void UpdatePlaceableConnect(HashSet<Vector2Int> gridPosSet)
+    {
+        foreach (var grid in gridPosSet)
+        {
+            if (TryGetPlaceableDataFromGridPos(grid, out var placeableObjData))
+            {
+                placeableObjData = default;
+                UpdatePlaceableConnect(placeableObjData.Uid);
+            }
+        }
     }
 
     public bool CanPlaceFurniture(int furnitureId, Vector2Int gridPosition, long ignoredFurnitureUid = 0)
@@ -413,7 +452,7 @@ public partial class UserData : IDtoConvertible<UserDataDto>
             UpdatePlaceableConnect(placeableObjData.Uid);
         }
     }
-    
+
     private void DisconnectPlaceableData(PlaceableObjData placeableObjData)
     {
         if (placeableObjData is ChairObjData chairObjData)
