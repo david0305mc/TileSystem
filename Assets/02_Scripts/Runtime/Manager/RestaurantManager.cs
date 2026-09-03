@@ -17,10 +17,10 @@ public class RestaurantManager : SingletonMono<RestaurantManager>
 
     void Start()
     {
-        GenerateNpcRandom();
+        GenerateCustomerRandom();
     }
 
-    private void GenerateNpcRandom()
+    private void GenerateCustomerRandom()
     {
         var attemptCount = 0;
         var createdCount = 0;
@@ -35,14 +35,14 @@ public class RestaurantManager : SingletonMono<RestaurantManager>
                 continue;
             }
 
-            var npcObj = CreateNpc(gridPosition);
+            var npcObj = CreateCustomerObj(gridPosition);
             // npcObj.MoveTo(GetRandomGridPos());
 
             createdCount++;
         }
     }
 
-    public NpcObj CreateNpc(Vector2Int gridPosition)
+    public CustomerObj CreateCustomerObj(Vector2Int gridPosition)
     {
         if (_customerObjPrefab == null || !_gridManager.IsWalkable(gridPosition))
         {
@@ -50,34 +50,34 @@ public class RestaurantManager : SingletonMono<RestaurantManager>
         }
 
         var customerData = UserDataManager.Instance.User.CreateCustomer();
-        var npc = Lean.Pool.LeanPool.Spawn(_customerObjPrefab, _gridManager.GridRoot);
+        var customerObj = Lean.Pool.LeanPool.Spawn(_customerObjPrefab, _gridManager.GridRoot);
 
-        npc.transform.localPosition = _gridManager.GridToWorld(gridPosition, Vector2Int.one);
-        npc.transform.localRotation = Quaternion.identity;
-        npc.Initialize(customerData.Uid, gridPosition, () =>
+        customerObj.transform.localPosition = _gridManager.GridToWorld(gridPosition, Vector2Int.one);
+        customerObj.transform.localRotation = Quaternion.identity;
+        customerObj.Initialize(customerData.Uid, gridPosition, () =>
         {
-            if (npc.NpcHud != null)
+            if (customerObj.NpcHud != null)
             {
                 return;
             }
 
-            npc.NpcHud = _overHeadUIManager.AttachNpcHud(npc);
+            customerObj.NpcHud = _overHeadUIManager.AttachNpcHud(customerObj);
         }, () =>
         {
-            NpcHud npcHud = npc.NpcHud;
+            NpcHud npcHud = customerObj.NpcHud;
 
             if (npcHud == null)
             {
                 return;
             }
 
-            npc.NpcHud = null;
+            customerObj.NpcHud = null;
             _overHeadUIManager.DetachNpcHud(npcHud);
         }, (out PlaceableObj targetChair, out Vector2Int targetGrid) =>
         {
             targetChair = default;
             targetGrid = default;
-            if (TryFindReachableEmptyChair(npc, out var chair, out var approachGridPos))
+            if (TryFindReachableEmptyChair(customerObj, out var chair, out var approachGridPos))
             {
                 var chairObj = _gridManager.TryGetPlaceableObj(chair.Uid);
                 if (chairObj == null)
@@ -104,7 +104,7 @@ public class RestaurantManager : SingletonMono<RestaurantManager>
         {
             UserDataManager.Instance.User.TryReleaseChair(customerData.Uid);
         });
-        return npc;
+        return customerObj;
     }
     private bool TryFindReachableEmptyChair(NpcObj npcObj, out PlaceableObjData chair, out Vector2Int approachGridPos)
     {
