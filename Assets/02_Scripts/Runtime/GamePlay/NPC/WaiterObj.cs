@@ -25,9 +25,12 @@ public class WaiterObj : NpcObj
 
     private StateMachine _fsm;
     private long _targetTableUid;
+    private WaiterTask _targetWaiterTask;
+    private System.Func<WaiterTask> _getWaiterTask;
 
-    public void Initialize(long uid, Vector2Int gridPosition)
+    public void Initialize(long uid, Vector2Int gridPosition, System.Func<WaiterTask> getWaiterTask)
     {
+        _getWaiterTask = getWaiterTask;
         Deinitialize();
         InitializeNpc(uid, gridPosition);
 
@@ -55,6 +58,7 @@ public class WaiterObj : NpcObj
         _fsm?.OnExit();
         _fsm = null;
         _targetTableUid = 0;
+        _targetWaiterTask = default;
     }
 
     private async UniTask IdleStateAsync(CancellationToken cancellationToken)
@@ -81,6 +85,26 @@ public class WaiterObj : NpcObj
         if (!userData.GetApproachGridPositions(displayStandData).Contains(CurrentGridPosition))
         {
             RequestReturningToDisplayStandState();
+            return;
+        }
+
+        while (true)
+        {
+            _targetWaiterTask = _getWaiterTask?.Invoke();
+
+            if (_targetWaiterTask != null)
+            {
+                switch (_targetWaiterTask.WaiterTaskType)
+                {
+                    case WaiterTaskType.ServeFood:
+                        RequestMovingToTable(_targetWaiterTask.TableUid);
+                        break;
+                    case WaiterTaskType.CleanFood:
+                        break;
+                }
+            }
+            await UniTask.WaitForSeconds(0.1f, cancellationToken: cancellationToken);
+
         }
     }
 

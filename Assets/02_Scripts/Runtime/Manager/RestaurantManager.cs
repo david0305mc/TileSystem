@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.Linq;
+using Cysharp.Threading.Tasks;
 using UnityEngine;
 
 public class RestaurantManager : SingletonMono<RestaurantManager>
@@ -11,6 +12,8 @@ public class RestaurantManager : SingletonMono<RestaurantManager>
 
     private readonly Dictionary<long, CustomerObj> _customerObjs = new();
     private readonly Dictionary<long, WaiterObj> _waiterObjs = new();
+
+    private Queue<WaiterTask> waiterTasks = new Queue<WaiterTask>();
 
     protected override void Awake()
     {
@@ -64,7 +67,10 @@ public class RestaurantManager : SingletonMono<RestaurantManager>
 
         waiterObj.transform.localPosition = _gridManager.GridToLocalPosition(gridPosition, Vector2Int.one);
         waiterObj.transform.localRotation = Quaternion.identity;
-        waiterObj.Initialize(waiterData.Uid, gridPosition);
+        waiterObj.Initialize(waiterData.Uid, gridPosition, () =>
+        {
+            return DequeueWaiterTask();
+        });
         _waiterObjs.Add(waiterObj.Uid, waiterObj);
 
         return waiterObj;
@@ -150,15 +156,7 @@ public class RestaurantManager : SingletonMono<RestaurantManager>
             }
         }, (chairUid) =>
         {
-            if(UserDataManager.Instance.User.TryGetPlaceableObjData(chairUid, out var placeableObjData) 
-            && placeableObjData is ChairObjData chairObjData)
-            {
-                var waiterObj = _waiterObjs.FirstOrDefault();
-                if (waiterObj.Value != default)
-                {
-                    waiterObj.Value.RequestMovingToTable(chairObjData.ConnectedTableUid.Value);
-                }
-            }
+            CreateWaiterTask(WaiterTaskType.ServeFood, customerData.Uid, chairUid);
         }, () =>
         {
             UserDataManager.Instance.User.TryReleaseChair(customerData.Uid);
@@ -214,5 +212,21 @@ public class RestaurantManager : SingletonMono<RestaurantManager>
             }
         }
         return false;
+    }
+    private void CreateWaiterTask(WaiterTaskType waiterTaskType, long customerUid, long tableUid)
+    {
+        WaiterTask waiterTask = new WaiterTask();
+        waiterTask.CustomerUid = customerUid;
+        waiterTask.TableUid = tableUid;
+        waiterTask.WaiterTaskType = waiterTaskType;
+        waiterTasks.Enqueue(waiterTask);
+    }
+    private WaiterTask DequeueWaiterTask()
+    {
+        if( waiterTasks.TryDequeue(out var result))
+        {
+            return result;
+        }
+        return default;
     }
 }
