@@ -13,7 +13,7 @@ public struct HitContext
 
 public class WaiterTask
 {
-    public long TaskUid { get; set; }
+    public long OrderUid { get; set; }
     public WaiterTaskType Type { get; set; }
     public long TableUid { get; set; }
     public long WaiterUid { get; set; }

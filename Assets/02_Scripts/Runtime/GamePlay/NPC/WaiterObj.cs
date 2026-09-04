@@ -27,19 +27,18 @@ public class WaiterObj : NpcObj
     private long _targetTableUid;
     private WaiterTask _targetWaiterTask;
     private System.Func<WaiterTask> _getWaiterTask;
-    private System.Action<WaiterTask> _serveFood;
+    private System.Action<WaiterTask> _serveFoodTask;
     private System.Action<WaiterTask> _releaseWaiterTask;
 
     public void Initialize(long uid,
     Vector2Int gridPosition,
-    System.Func<WaiterTask>
-    getWaiterTask,
-    System.Action<WaiterTask> serveFood,
+    System.Func<WaiterTask> getWaiterTask,
+    System.Action<WaiterTask> serveFoodTask,
     System.Action<WaiterTask> releaseWaiterTask)
     {
         Deinitialize();
         _getWaiterTask = getWaiterTask;
-        _serveFood = serveFood;
+        _serveFoodTask = serveFoodTask;
         _releaseWaiterTask = releaseWaiterTask;
         InitializeNpc(uid, gridPosition);
 
@@ -70,7 +69,7 @@ public class WaiterObj : NpcObj
         _targetWaiterTask = default;
         ReleaseWaiterTask();
         _getWaiterTask = null;
-        _serveFood = null;
+        _serveFoodTask = null;
         _releaseWaiterTask = null;
     }
 
@@ -160,7 +159,7 @@ public class WaiterObj : NpcObj
         cancellationToken.ThrowIfCancellationRequested();
         try
         {
-            CompleteCurrentWaiterTask();
+            ServeFoodTask();
         }
         finally
         {
@@ -230,13 +229,13 @@ public class WaiterObj : NpcObj
         return true;
     }
 
-    private void CompleteCurrentWaiterTask()
+    private void ServeFoodTask()
     {
         var waiterTask = _targetWaiterTask;
         _targetWaiterTask = default;
         if (waiterTask != default)
         {
-            _serveFood?.Invoke(waiterTask);
+            _serveFoodTask?.Invoke(waiterTask);
         }
     }
     private void ReleaseWaiterTask()

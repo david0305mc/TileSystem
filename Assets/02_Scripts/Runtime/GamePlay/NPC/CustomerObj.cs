@@ -76,7 +76,7 @@ public class CustomerObj : NpcObj
         _fsm?.OnExit();
         _fsm = null;
 
-        _hideHud?.Invoke();
+        // _hideHud?.Invoke();
         _exitingAction?.Invoke();
 
         _targetChair = null;
@@ -172,7 +172,7 @@ public class CustomerObj : NpcObj
             return;
         }
 
-        _showHud?.Invoke();
+        // _showHud?.Invoke();
         _sitAction?.Invoke(_targetChair.Uid);
 
         transform.position = _targetChair.transform.position;

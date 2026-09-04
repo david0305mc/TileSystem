@@ -34,7 +34,7 @@ public class RestaurantManager : SingletonMono<RestaurantManager>
     {
         var attemptCount = 0;
         var createdCount = 0;
-        while (createdCount < 10 && attemptCount++ < 100)
+        while (createdCount < 5 && attemptCount++ < 100)
         {
             int x = Random.Range(0, GameDefine.GridWidth);
             int y = Random.Range(0, GameDefine.GridHeight);
@@ -69,20 +69,23 @@ public class RestaurantManager : SingletonMono<RestaurantManager>
         waiterObj.transform.localRotation = Quaternion.identity;
         waiterObj.Initialize(waiterData.Uid, gridPosition, () =>
         {
+            // Assign Waiter 
             var waiterTask = waiterTasks.FirstOrDefault(item => !item.IsAssigned);
             if (waiterTask != default)
             {
+                waiterTask.WaiterUid = waiterData.Uid;
                 waiterTask.IsAssigned = true;
             }
             return waiterTask;
         }, waiterTask =>
         {
-            CompleteWaiterTask(waiterData.Uid, waiterTask);
-            
+            // Serve Food
+            ServeFoodWaiterTask(waiterData.Uid, waiterTask.OrderUid);
+
             // To Do serve Food
             // To Do 해당 테이블에 말풍선 띄우고
             // To Do 고객은 식사 상태로 변환
-        }, waiterTask=>
+        }, waiterTask =>
         {
             ReleaseWaiterTask(waiterData.Uid, waiterTask);
         });
@@ -168,9 +171,20 @@ public class RestaurantManager : SingletonMono<RestaurantManager>
             }
         }, (chairUid) =>
         {
-            CreateWaiterTask(WaiterTaskType.ServeFood, customerData.Uid, chairUid);
+            // Sit
+            customerData.OrderId = CreateWaiterTask(WaiterTaskType.ServeFood, customerData.Uid, chairUid);
         }, () =>
         {
+            // Exit
+            var waiterTask = waiterTasks.FirstOrDefault(item => item.OrderUid == customerData.OrderId);
+            if (waiterTask != null)
+            {
+                var tableObj = _gridManager.TryGetPlaceableObj(waiterTask.TableUid);
+                if (tableObj != null)
+                {
+                    _overHeadUIManager.HideHud(tableObj);
+                }
+            }
             UserDataManager.Instance.User.TryReleaseChair(customerData.Uid);
         });
         _customerObjs.Add(customerObj.Uid, customerObj);
@@ -225,21 +239,38 @@ public class RestaurantManager : SingletonMono<RestaurantManager>
         }
         return false;
     }
-    private void CreateWaiterTask(WaiterTaskType waiterTaskType, long customerUid, long chairUid)
+    private long CreateWaiterTask(WaiterTaskType waiterTaskType, long customerUid, long chairUid)
     {
         if (!UserDataManager.Instance.User.TryGetPlaceableObjData(chairUid, out var placeableObjData)
         || placeableObjData is not ChairObjData chairObjData)
         {
-            return;
+            return 0;
         }
 
         WaiterTask waiterTask = new WaiterTask
         {
+            OrderUid = UserDataManager.Instance.User.GenerateRuntimeUid(),
             CustomerUid = customerUid,
             TableUid = chairObjData.ConnectedTableUid.Value,
-            Type = waiterTaskType
+            Type = waiterTaskType,
         };
         waiterTasks.Add(waiterTask);
+        return waiterTask.OrderUid;
+    }
+    private void ServeFoodWaiterTask(long waiterUid, long orderUid)
+    {
+        WaiterTask waiterTask = waiterTasks.FirstOrDefault(item => item.OrderUid == orderUid);
+        if (waiterTask.WaiterUid != waiterUid
+        || waiterTask.IsAssigned != true)
+        {
+            return;
+        }
+
+        var tableObj = _gridManager.TryGetPlaceableObj(waiterTask.TableUid);
+        if (tableObj != null)
+        {
+            _overHeadUIManager.ShowHud(tableObj);
+        }
     }
     private void CompleteWaiterTask(long waiterUid, WaiterTask waiterTask)
     {
@@ -249,6 +280,12 @@ public class RestaurantManager : SingletonMono<RestaurantManager>
         {
             return;
         }
+        var tableObj = _gridManager.TryGetPlaceableObj(waiterTask.TableUid);
+        if (tableObj != null)
+        {
+            _overHeadUIManager.HideHud(tableObj);
+        }
+
         waiterTask.IsAssigned = false;
         waiterTask.WaiterUid = 0;
     }

@@ -4,10 +4,14 @@ public class CustomerData
 {
     public long Uid { get; }
     public long AssignedFurnitureUid { get; set; }
+    private long _orderId;
+    public long OrderId { get => _orderId; set { _orderId = value; } }
+
     public CustomerData(long uid)
     {
         Uid = uid;
     }
+    
 }
 public class WaiterData
 {
