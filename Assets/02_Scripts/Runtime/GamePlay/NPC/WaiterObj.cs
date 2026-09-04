@@ -28,12 +28,19 @@ public class WaiterObj : NpcObj
     private WaiterTask _targetWaiterTask;
     private System.Func<WaiterTask> _getWaiterTask;
     private System.Action<WaiterTask> _serveFood;
+    private System.Action<WaiterTask> _releaseWaiterTask;
 
-    public void Initialize(long uid, Vector2Int gridPosition, System.Func<WaiterTask> getWaiterTask, System.Action<WaiterTask> serveFood)
+    public void Initialize(long uid,
+    Vector2Int gridPosition,
+    System.Func<WaiterTask>
+    getWaiterTask,
+    System.Action<WaiterTask> serveFood,
+    System.Action<WaiterTask> releaseWaiterTask)
     {
+        Deinitialize();
         _getWaiterTask = getWaiterTask;
         _serveFood = serveFood;
-        Deinitialize();
+        _releaseWaiterTask = releaseWaiterTask;
         InitializeNpc(uid, gridPosition);
 
         _fsm = new StateMachine();
@@ -61,6 +68,10 @@ public class WaiterObj : NpcObj
         _fsm = null;
         _targetTableUid = 0;
         _targetWaiterTask = default;
+        ReleaseWaiterTask();
+        _getWaiterTask = null;
+        _serveFood = null;
+        _releaseWaiterTask = null;
     }
 
     private async UniTask IdleStateAsync(CancellationToken cancellationToken)
@@ -118,6 +129,7 @@ public class WaiterObj : NpcObj
         {
             Debug.LogWarning($"Waiter target table {_targetTableUid} is missing.");
             _targetTableUid = 0;
+            ReleaseWaiterTask();
             RequestReturningToDisplayStandState();
             return;
         }
@@ -126,6 +138,7 @@ public class WaiterObj : NpcObj
         {
             Debug.LogWarning($"Waiter cannot reach table {_targetTableUid}.");
             _targetTableUid = 0;
+            ReleaseWaiterTask();
             RequestReturningToDisplayStandState();
             return;
         }
@@ -143,10 +156,16 @@ public class WaiterObj : NpcObj
     private async UniTask ServingStateAsync(CancellationToken cancellationToken)
     {
         SetAnimation("idle");
-        // return UniTask.CompletedTask;
-        await UniTask.Yield();
-        _serveFood?.Invoke(_targetWaiterTask);
-        RequestReturningToDisplayStandState();
+
+        cancellationToken.ThrowIfCancellationRequested();
+        try
+        {
+            CompleteCurrentWaiterTask();
+        }
+        finally
+        {
+            RequestReturningToDisplayStandState();
+        }
     }
 
     private async UniTask ReturningToDisplayStandStateAsync(CancellationToken cancellationToken)
@@ -201,6 +220,8 @@ public class WaiterObj : NpcObj
             || !UserDataManager.Instance.User.TryGetPlaceableObjData(tableUid, out var tableData)
             || tableData is not TableObjData)
         {
+            ReleaseWaiterTask();
+            RequestReturningToDisplayStandState();
             return false;
         }
 
@@ -209,11 +230,22 @@ public class WaiterObj : NpcObj
         return true;
     }
 
-    public void CompleteServing()
+    private void CompleteCurrentWaiterTask()
     {
-        if (_fsm?.ActiveStateName == ServingState)
+        var waiterTask = _targetWaiterTask;
+        _targetWaiterTask = default;
+        if (waiterTask != default)
         {
-            RequestReturningToDisplayStandState();
+            _serveFood?.Invoke(waiterTask);
+        }
+    }
+    private void ReleaseWaiterTask()
+    {
+        var waiterTask = _targetWaiterTask;
+        _targetWaiterTask = default;
+        if (waiterTask != default)
+        {
+            _releaseWaiterTask?.Invoke(waiterTask);
         }
     }
 

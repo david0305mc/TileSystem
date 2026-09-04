@@ -77,10 +77,14 @@ public class RestaurantManager : SingletonMono<RestaurantManager>
             return waiterTask;
         }, waiterTask =>
         {
-            RemoveWaiterTask(waiterTask);
+            CompleteWaiterTask(waiterData.Uid, waiterTask);
+            
             // To Do serve Food
             // To Do 해당 테이블에 말풍선 띄우고
             // To Do 고객은 식사 상태로 변환
+        }, waiterTask=>
+        {
+            ReleaseWaiterTask(waiterData.Uid, waiterTask);
         });
         _waiterObjs.Add(waiterObj.Uid, waiterObj);
 
@@ -240,8 +244,37 @@ public class RestaurantManager : SingletonMono<RestaurantManager>
         };
         waiterTasks.Add(waiterTask);
     }
-    private void RemoveWaiterTask(WaiterTask task)
+    private void CompleteWaiterTask(long waiterUid, WaiterTask waiterTask)
     {
-        waiterTasks.Remove(task);
+        if (waiterTask.WaiterUid != waiterUid
+            || waiterTask.IsAssigned != true
+            || waiterTasks.Remove(waiterTask))
+        {
+            return;
+        }
+        waiterTask.IsAssigned = false;
+        waiterTask.WaiterUid = 0;
+    }
+    private void ReleaseWaiterTask(long waiterUid, WaiterTask waiterTask)
+    {
+        if (waiterTask.WaiterUid != waiterUid
+            || !waiterTask.IsAssigned)
+        {
+            return;
+        }
+        var taskIndex = waiterTasks.IndexOf(waiterTask);
+        if (taskIndex < 0)
+        {
+            return;
+        }
+        if (taskIndex < waiterTasks.Count - 1)
+        {
+            waiterTasks.RemoveAt(taskIndex);
+            waiterTasks.Add(waiterTask);
+        }
+
+        waiterTask.IsAssigned = false;
+        waiterTask.WaiterUid = 0;
+        return;
     }
 }
