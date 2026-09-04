@@ -128,23 +128,10 @@ public class RestaurantManager : SingletonMono<RestaurantManager>
         customerObj.transform.localRotation = Quaternion.identity;
         customerObj.Initialize(customerData.Uid, gridPosition, () =>
         {
-            if (customerObj.BaseHud != null)
-            {
-                return;
-            }
-
-            customerObj.BaseHud = _overHeadUIManager.AttachNpcHud(customerObj);
+            _overHeadUIManager.ShowHud(customerObj);
         }, () =>
         {
-            BaseWorldHud baseHud = customerObj.BaseHud;
-
-            if (baseHud == null)
-            {
-                return;
-            }
-
-            customerObj.BaseHud = null;
-            _overHeadUIManager.DetachNpcHud(baseHud);
+            _overHeadUIManager.HideHud(customerObj);
         }, (out PlaceableObj targetChair, out Vector2Int targetGrid) =>
         {
             targetChair = default;

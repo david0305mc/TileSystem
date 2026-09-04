@@ -96,8 +96,6 @@ public class NpcObj : MonoBehaviour, IWorldHudTarget
     protected bool HasPath =>
         _worldPath.Count > 0 && _pathIndex < _worldPath.Count;
 
-    public BaseWorldHud BaseHud { get; set; }
-
     protected void InitializeNpc(long uid, Vector2Int gridPosition)
     {
         StopMovement();
@@ -298,7 +296,5 @@ public class NpcObj : MonoBehaviour, IWorldHudTarget
             previousPosition = targetPosition;
         }
     }
-
-
 #endif
 }

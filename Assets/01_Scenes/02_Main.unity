@@ -875,8 +875,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::OverHeadUIManager
   _baseHud: {fileID: 1705844936324618543, guid: be0d933e7807bb546948ef3a71ed242a, type: 3}
-  _canvas: {fileID: 853770140}
   _rootTransform: {fileID: 449604225}
+  _worldCamera: {fileID: 961739752}
 --- !u!1 &859525898
 GameObject:
   m_ObjectHideFlags: 0

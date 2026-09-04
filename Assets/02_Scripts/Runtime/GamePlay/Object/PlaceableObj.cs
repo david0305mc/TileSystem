@@ -15,8 +15,6 @@ public class PlaceableObj : MonoBehaviour, IPointerInteractable, IWorldHudTarget
 
     public Transform HudAnchor => _hudAnchor == null ? transform : _hudAnchor;
 
-    public BaseWorldHud BaseHud { get; set; }
-
     public void OnClick()
     {
 

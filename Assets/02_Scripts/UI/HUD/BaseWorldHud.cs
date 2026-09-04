@@ -1,21 +1,56 @@
+using System;
+using Lean.Pool;
 using UnityEngine;
 
-public class BaseWorldHud : MonoBehaviour
+public class BaseWorldHud : MonoBehaviour, IPoolable
 {
-    private IWorldHudTarget _target;
-    private Camera _camera;
-    public void Bind(IWorldHudTarget hudTarget, Camera camera)
+    private Transform _hudAnchor;
+    private Camera _worldCamera;
+    private Action<BaseWorldHud> _bindingInvalidated;
+
+    public bool TryBind(
+        Transform hudAnchor,
+        Camera worldCamera,
+        Action<BaseWorldHud> bindingInvalidated)
     {
-        _camera = camera;
-        _target = hudTarget;
+        Unbind();
+
+        if (hudAnchor == null || worldCamera == null)
+        {
+            return false;
+        }
+
+        _hudAnchor = hudAnchor;
+        _worldCamera = worldCamera;
+        _bindingInvalidated = bindingInvalidated;
+        return true;
     }
 
-    void LateUpdate()
+    public void Unbind()
     {
-        if (_target != null)
+        _hudAnchor = null;
+        _worldCamera = null;
+        _bindingInvalidated = null;
+    }
+
+    public void OnSpawn()
+    {
+        Unbind();
+    }
+
+    public void OnDespawn()
+    {
+        Unbind();
+    }
+
+    private void LateUpdate()
+    {
+        if (_hudAnchor == null || _worldCamera == null)
         {
-            var screenPosition = _camera.WorldToScreenPoint(_target.HudAnchor.position);
-            transform.position = screenPosition;
+            _bindingInvalidated?.Invoke(this);
+            return;
         }
+
+        transform.position = _worldCamera.WorldToScreenPoint(_hudAnchor.position);
     }
 }
