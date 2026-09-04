@@ -172,11 +172,13 @@ public class RestaurantManager : SingletonMono<RestaurantManager>
         }, (chairUid) =>
         {
             // Sit
-            customerData.OrderId = CreateWaiterTask(WaiterTaskType.ServeFood, customerData.Uid, chairUid);
+            var waiterTask = CreateWaiterTask(WaiterTaskType.ServeFood, customerData.Uid, chairUid);
+            customerData.OrderUid = waiterTask.OrderUid;
+            return waiterTask;
         }, () =>
         {
             // Exit
-            var waiterTask = waiterTasks.FirstOrDefault(item => item.OrderUid == customerData.OrderId);
+            var waiterTask = waiterTasks.FirstOrDefault(item => item.OrderUid == customerData.OrderUid);
             if (waiterTask != null)
             {
                 var tableObj = _gridManager.TryGetPlaceableObj(waiterTask.TableUid);
@@ -239,12 +241,12 @@ public class RestaurantManager : SingletonMono<RestaurantManager>
         }
         return false;
     }
-    private long CreateWaiterTask(WaiterTaskType waiterTaskType, long customerUid, long chairUid)
+    private WaiterTask CreateWaiterTask(WaiterTaskType waiterTaskType, long customerUid, long chairUid)
     {
         if (!UserDataManager.Instance.User.TryGetPlaceableObjData(chairUid, out var placeableObjData)
         || placeableObjData is not ChairObjData chairObjData)
         {
-            return 0;
+            return default;
         }
 
         WaiterTask waiterTask = new WaiterTask
@@ -255,7 +257,7 @@ public class RestaurantManager : SingletonMono<RestaurantManager>
             Type = waiterTaskType,
         };
         waiterTasks.Add(waiterTask);
-        return waiterTask.OrderUid;
+        return waiterTask;
     }
     private void ServeFoodWaiterTask(long waiterUid, long orderUid)
     {
@@ -270,6 +272,10 @@ public class RestaurantManager : SingletonMono<RestaurantManager>
         if (tableObj != null)
         {
             _overHeadUIManager.ShowHud(tableObj);
+        }
+        if (TryGetCustomerObj(waiterTask.CustomerUid, out var customerObj))
+        {
+            customerObj.RequestEatingState();
         }
     }
     private void CompleteWaiterTask(long waiterUid, WaiterTask waiterTask)

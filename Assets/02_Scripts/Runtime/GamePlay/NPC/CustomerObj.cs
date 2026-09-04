@@ -24,6 +24,7 @@ public class CustomerObj : NpcObj
     private static readonly string WanderingState = nameof(CustomerState.Wandering);
     private static readonly string MovingToChairState = nameof(CustomerState.MovingToChair);
     private static readonly string SittingState = nameof(CustomerState.Sitting);
+    private static readonly string EatingState = nameof(CustomerState.Eating);
     private static readonly string ExitingState = nameof(CustomerState.Exiting);
 
     [Header("Behaviour")]
@@ -36,7 +37,7 @@ public class CustomerObj : NpcObj
     private Action _showHud;
     private Action _hideHud;
     private TryMoveToEmptyChair _tryMoveToEmptyChair;
-    private System.Action<long> _sitAction;
+    private System.Func<long, WaiterTask> _sitAction;
     private Action _exitingAction;
 
     public void Initialize(
@@ -45,7 +46,7 @@ public class CustomerObj : NpcObj
         Action showHud,
         Action hideHud,
         TryMoveToEmptyChair tryMoveToEmptyChair,
-        System.Action<long> sitAction,
+        System.Func<long, WaiterTask> sitAction,
         Action exitingAction)
     {
         _showHud = showHud;
@@ -106,6 +107,7 @@ public class CustomerObj : NpcObj
             new UniTaskState(
                 onEnterAsync: SittingStateAsync,
                 onExit: _ => _hideHud?.Invoke()));
+        _fsm.AddState(EatingState, new UniTaskState(onEnterAsync: EatingStateAsync));
         _fsm.AddState(
             ExitingState,
             new UniTaskState(onEnterAsync: ExitingStateAsync));
@@ -173,11 +175,26 @@ public class CustomerObj : NpcObj
         }
 
         // _showHud?.Invoke();
-        _sitAction?.Invoke(_targetChair.Uid);
+        var waiterTask = _sitAction?.Invoke(_targetChair.Uid);
+        if (waiterTask == default)
+        {
+            RequestExitState();
+            return;
+        }
 
         transform.position = _targetChair.transform.position;
-        SetAnimation("dance");
+        SetAnimation("idle");
 
+        await UniTask.WaitForSeconds(3f, cancellationToken: cancellationToken);
+        cancellationToken.ThrowIfCancellationRequested();
+        if (!waiterTask.IsAssigned)
+        {
+            RequestExitState();
+        }
+    }
+    private async UniTask EatingStateAsync(CancellationToken cancellationToken)
+    {
+        SetAnimation("dance");
         await UniTask.WaitForSeconds(
             3f,
             cancellationToken: cancellationToken);
@@ -245,7 +262,10 @@ public class CustomerObj : NpcObj
 
         _fsm?.RequestStateChange(MovingToChairState);
     }
-
+    public void RequestEatingState()
+    {
+        _fsm?.RequestStateChange(EatingState);
+    }
     private void RequestSittingState()
     {
         _fsm?.RequestStateChange(SittingState);
