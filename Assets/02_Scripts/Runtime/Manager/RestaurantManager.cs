@@ -260,9 +260,17 @@ public class RestaurantManager : SingletonMono<RestaurantManager>
     private void ServeFoodWaiterTask(long waiterUid, long orderUid)
     {
         WaiterTask waiterTask = waiterTasks.FirstOrDefault(item => item.OrderUid == orderUid);
-        if (waiterTask.WaiterUid != waiterUid
+        if (waiterTask == null
+        || waiterTask.WaiterUid != waiterUid
         || waiterTask.IsAssigned != true)
         {
+            return;
+        }
+
+        if (!_customerObjs.TryGetValue(waiterTask.CustomerUid, out var customerObj)
+        || !customerObj.RequestEatingState())
+        {
+            Debug.LogWarning($"Customer {waiterTask.CustomerUid} is not ready to eat.");
             return;
         }
 

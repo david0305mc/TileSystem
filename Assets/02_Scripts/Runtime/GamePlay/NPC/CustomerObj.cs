@@ -24,11 +24,15 @@ public class CustomerObj : NpcObj
     private static readonly string WanderingState = nameof(CustomerState.Wandering);
     private static readonly string MovingToChairState = nameof(CustomerState.MovingToChair);
     private static readonly string SittingState = nameof(CustomerState.Sitting);
+    private static readonly string EatingState = nameof(CustomerState.Eating);
     private static readonly string ExitingState = nameof(CustomerState.Exiting);
 
     [Header("Behaviour")]
     [SerializeField, Min(0f)]
     private float _waitDuration = 2f;
+
+    [SerializeField, Min(0f)]
+    private float _eatingDuration = 3f;
 
     private StateMachine _fsm;
     private PlaceableObj _targetChair;
@@ -107,6 +111,9 @@ public class CustomerObj : NpcObj
                 onEnterAsync: SittingStateAsync,
                 onExit: _ => _hideHud?.Invoke()));
         _fsm.AddState(
+            EatingState,
+            new UniTaskState(onEnterAsync: EatingStateAsync));
+        _fsm.AddState(
             ExitingState,
             new UniTaskState(onEnterAsync: ExitingStateAsync));
 
@@ -162,24 +169,41 @@ public class CustomerObj : NpcObj
         RequestSittingState();
     }
 
-    private async UniTask SittingStateAsync(
+    private UniTask SittingStateAsync(
         CancellationToken cancellationToken)
     {
+        cancellationToken.ThrowIfCancellationRequested();
+
         if (_targetChair == null)
         {
             Debug.LogWarning("Customer target chair is missing.");
             RequestExitState();
-            return;
+            return UniTask.CompletedTask;
         }
 
-        // _showHud?.Invoke();
+        _showHud?.Invoke();
         _sitAction?.Invoke(_targetChair.Uid);
 
         transform.position = _targetChair.transform.position;
+        SetAnimation("idle");
+
+        return UniTask.CompletedTask;
+    }
+
+    private async UniTask EatingStateAsync(
+        CancellationToken cancellationToken)
+    {
+        if (_targetChair == null)
+        {
+            Debug.LogWarning("Customer cannot eat without a target chair.");
+            RequestExitState();
+            return;
+        }
+
         SetAnimation("dance");
 
         await UniTask.WaitForSeconds(
-            3f,
+            _eatingDuration,
             cancellationToken: cancellationToken);
 
         RequestExitState();
@@ -249,6 +273,19 @@ public class CustomerObj : NpcObj
     private void RequestSittingState()
     {
         _fsm?.RequestStateChange(SittingState);
+    }
+
+    public bool RequestEatingState()
+    {
+        if (_fsm == null ||
+            _targetChair == null ||
+            _fsm.ActiveStateName != SittingState)
+        {
+            return false;
+        }
+
+        _fsm.RequestStateChange(EatingState);
+        return true;
     }
 
     private void RequestExitState()
