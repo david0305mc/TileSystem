@@ -3,7 +3,7 @@ using UnityEngine;
 
 public class OverHeadUIManager : MonoBehaviour
 {
-    [SerializeField] private NpcHud _npcHud;
+    [SerializeField] private BaseWorldHud _baseHud;
     [SerializeField] private Canvas _canvas;
     [SerializeField] private Transform _rootTransform;
 
@@ -12,14 +12,14 @@ public class OverHeadUIManager : MonoBehaviour
     {
         _worldCamera = Camera.main;
     }
-    public NpcHud AttachNpcHud(NpcObj npcObj)
+    public BaseWorldHud AttachNpcHud(NpcObj npcObj)
     {
-        NpcHud npcHud = LeanPool.Spawn(_npcHud, _rootTransform);
+        BaseWorldHud npcHud = LeanPool.Spawn(_baseHud, _rootTransform);
         npcHud.Bind(npcObj, _worldCamera);
         return npcHud;
     }
 
-    public void DetachNpcHud(NpcHud npcHud)
+    public void DetachNpcHud(BaseWorldHud npcHud)
     {
         LeanPool.Despawn(npcHud);
     }

@@ -6,7 +6,7 @@ using Spine.Unity;
 using UnityEngine;
 using UnityEngine.Serialization;
 
-public class NpcObj : MonoBehaviour
+public class NpcObj : MonoBehaviour, IWorldHudTarget
 {
     [SerializeField] private Transform _hudAnchor;
 
@@ -89,13 +89,14 @@ public class NpcObj : MonoBehaviour
     private Vector2Int _targetGridPosition;
 
     public Transform HudAnchor => _hudAnchor;
-    public NpcHud NpcHud { get; set; }
     public long Uid { get; private set; }
     public Vector2Int CurrentGridPosition { get; private set; }
     public bool IsMoving { get; private set; }
 
     protected bool HasPath =>
         _worldPath.Count > 0 && _pathIndex < _worldPath.Count;
+
+    public BaseWorldHud BaseHud { get; set; }
 
     protected void InitializeNpc(long uid, Vector2Int gridPosition)
     {
@@ -297,5 +298,7 @@ public class NpcObj : MonoBehaviour
             previousPosition = targetPosition;
         }
     }
+
+
 #endif
 }

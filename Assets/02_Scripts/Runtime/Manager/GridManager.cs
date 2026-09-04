@@ -505,7 +505,7 @@ public class GridManager : SingletonMono<GridManager>
     {
         if (placeables.TryGetValue(tableUid, out var placeableObj))
         {
-            
+            // placeableObj.show
         }
         
     }

@@ -1,7 +1,8 @@
 using UnityEngine;
 
-public class PlaceableObj : MonoBehaviour, IPointerInteractable
+public class PlaceableObj : MonoBehaviour, IPointerInteractable, IWorldHudTarget
 {
+    [SerializeField] private Transform _hudAnchor;
     public delegate bool TryDropAction(long uid, Vector3 dropWorldPosition, out Vector3 snappedWorldPosition);
     public delegate bool TryPreviewDropAction(Vector3 dropWorldPosition, out Vector3 snappedWorldPosition);
 
@@ -11,6 +12,10 @@ public class PlaceableObj : MonoBehaviour, IPointerInteractable
     private TryPreviewDropAction _tryDropAction;
     public long Uid { get; private set; }
     public Vector2Int FootprintSize { get; private set; } = Vector2Int.one;
+
+    public Transform HudAnchor => _hudAnchor == null ? transform : _hudAnchor;
+
+    public BaseWorldHud BaseHud { get; set; }
 
     public void OnClick()
     {
