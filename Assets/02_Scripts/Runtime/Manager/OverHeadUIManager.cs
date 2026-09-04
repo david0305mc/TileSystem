@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using Lean.Pool;
 using UnityEngine;
 
@@ -7,23 +8,34 @@ public class OverHeadUIManager : MonoBehaviour
     [SerializeField] private Canvas _canvas;
     [SerializeField] private Transform _rootTransform;
 
+
+    private Dictionary<IWorldHudTarget, BaseWorldHud> _activeHuds = new();
     private Camera _worldCamera;
     void Start()
     {
         _worldCamera = Camera.main;
     }
-    public BaseWorldHud AttachNpcHud(NpcObj npcObj)
+    public BaseWorldHud ShowHud(IWorldHudTarget hudTarget)
     {
-        BaseWorldHud npcHud = LeanPool.Spawn(_baseHud, _rootTransform);
-        npcHud.Bind(npcObj, _worldCamera);
-        return npcHud;
+        if (_activeHuds.TryGetValue(hudTarget, out var baseWorldHud))
+        {
+            HideHud(hudTarget);
+        }
+        BaseWorldHud worldHud = LeanPool.Spawn(_baseHud, _rootTransform);
+        worldHud.Bind(hudTarget, _worldCamera);
+        _activeHuds.Add(hudTarget, worldHud);
+        return worldHud;
     }
 
-    public void DetachNpcHud(BaseWorldHud npcHud)
+    public void HideHud(IWorldHudTarget hudTarget)
     {
-        LeanPool.Despawn(npcHud);
+        if (_activeHuds.TryGetValue(hudTarget, out var baseWorldHud))
+        {
+            LeanPool.Despawn(baseWorldHud);
+            _activeHuds.Remove(hudTarget);
+        }
     }
 
 
-    
+
 }

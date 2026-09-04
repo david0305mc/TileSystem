@@ -133,18 +133,15 @@ public class RestaurantManager : SingletonMono<RestaurantManager>
                 return;
             }
 
-            customerObj.BaseHud = _overHeadUIManager.AttachNpcHud(customerObj);
+            customerObj.BaseHud = _overHeadUIManager.ShowHud(customerObj);
         }, () =>
         {
             BaseWorldHud baseHud = customerObj.BaseHud;
-
             if (baseHud == null)
             {
                 return;
             }
-
-            customerObj.BaseHud = null;
-            _overHeadUIManager.DetachNpcHud(baseHud);
+            _overHeadUIManager.HideHud(customerObj);
         }, (out PlaceableObj targetChair, out Vector2Int targetGrid) =>
         {
             targetChair = default;
