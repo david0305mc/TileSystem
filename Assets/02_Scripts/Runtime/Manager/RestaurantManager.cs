@@ -1,6 +1,5 @@
 using System.Collections.Generic;
 using System.Linq;
-using Cysharp.Threading.Tasks;
 using UnityEngine;
 
 public class RestaurantManager : SingletonMono<RestaurantManager>
@@ -13,7 +12,7 @@ public class RestaurantManager : SingletonMono<RestaurantManager>
     private readonly Dictionary<long, CustomerObj> _customerObjs = new();
     private readonly Dictionary<long, WaiterObj> _waiterObjs = new();
 
-    private Queue<WaiterTask> waiterTasks = new Queue<WaiterTask>();
+    private readonly List<WaiterTask> waiterTasks = new();
 
     protected override void Awake()
     {
@@ -28,6 +27,7 @@ public class RestaurantManager : SingletonMono<RestaurantManager>
     {
         GenerateCustomerRandom();
         CreateWaiterObj(new Vector2Int(3, 3));
+        CreateWaiterObj(new Vector2Int(3, 4));
     }
 
     private void GenerateCustomerRandom()
@@ -69,7 +69,18 @@ public class RestaurantManager : SingletonMono<RestaurantManager>
         waiterObj.transform.localRotation = Quaternion.identity;
         waiterObj.Initialize(waiterData.Uid, gridPosition, () =>
         {
-            return DequeueWaiterTask();
+            var waiterTask = waiterTasks.FirstOrDefault(item => !item.IsAssigned);
+            if (waiterTask != default)
+            {
+                waiterTask.IsAssigned = true;
+            }
+            return waiterTask;
+        }, waiterTask =>
+        {
+            RemoveWaiterTask(waiterTask);
+            // To Do serve Food
+            // To Do 해당 테이블에 말풍선 띄우고
+            // To Do 고객은 식사 상태로 변환
         });
         _waiterObjs.Add(waiterObj.Uid, waiterObj);
 
@@ -213,20 +224,24 @@ public class RestaurantManager : SingletonMono<RestaurantManager>
         }
         return false;
     }
-    private void CreateWaiterTask(WaiterTaskType waiterTaskType, long customerUid, long tableUid)
+    private void CreateWaiterTask(WaiterTaskType waiterTaskType, long customerUid, long chairUid)
     {
-        WaiterTask waiterTask = new WaiterTask();
-        waiterTask.CustomerUid = customerUid;
-        waiterTask.TableUid = tableUid;
-        waiterTask.WaiterTaskType = waiterTaskType;
-        waiterTasks.Enqueue(waiterTask);
-    }
-    private WaiterTask DequeueWaiterTask()
-    {
-        if( waiterTasks.TryDequeue(out var result))
+        if (!UserDataManager.Instance.User.TryGetPlaceableObjData(chairUid, out var placeableObjData)
+        || placeableObjData is not ChairObjData chairObjData)
         {
-            return result;
+            return;
         }
-        return default;
+
+        WaiterTask waiterTask = new WaiterTask
+        {
+            CustomerUid = customerUid,
+            TableUid = chairObjData.ConnectedTableUid.Value,
+            Type = waiterTaskType
+        };
+        waiterTasks.Add(waiterTask);
+    }
+    private void RemoveWaiterTask(WaiterTask task)
+    {
+        waiterTasks.Remove(task);
     }
 }

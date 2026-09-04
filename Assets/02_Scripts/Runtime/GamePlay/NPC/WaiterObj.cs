@@ -27,10 +27,12 @@ public class WaiterObj : NpcObj
     private long _targetTableUid;
     private WaiterTask _targetWaiterTask;
     private System.Func<WaiterTask> _getWaiterTask;
+    private System.Action<WaiterTask> _serveFood;
 
-    public void Initialize(long uid, Vector2Int gridPosition, System.Func<WaiterTask> getWaiterTask)
+    public void Initialize(long uid, Vector2Int gridPosition, System.Func<WaiterTask> getWaiterTask, System.Action<WaiterTask> serveFood)
     {
         _getWaiterTask = getWaiterTask;
+        _serveFood = serveFood;
         Deinitialize();
         InitializeNpc(uid, gridPosition);
 
@@ -92,9 +94,9 @@ public class WaiterObj : NpcObj
         {
             _targetWaiterTask = _getWaiterTask?.Invoke();
 
-            if (_targetWaiterTask != null)
+            if (_targetWaiterTask != default)
             {
-                switch (_targetWaiterTask.WaiterTaskType)
+                switch (_targetWaiterTask.Type)
                 {
                     case WaiterTaskType.ServeFood:
                         RequestMovingToTable(_targetWaiterTask.TableUid);
@@ -143,6 +145,7 @@ public class WaiterObj : NpcObj
         SetAnimation("idle");
         // return UniTask.CompletedTask;
         await UniTask.Yield();
+        _serveFood?.Invoke(_targetWaiterTask);
         RequestReturningToDisplayStandState();
     }
 

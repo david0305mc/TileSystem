@@ -501,5 +501,13 @@ public class GridManager : SingletonMono<GridManager>
         var farthestTileOffset = footprintSize - Vector2Int.one;
         return GridUtil.GridToLocalPosition(farthestTileOffset, _tileWidth, _tileHeight) * 0.5f;
     }
+    public void PlaceFoodOnTable(long tableUid)
+    {
+        if (placeables.TryGetValue(tableUid, out var placeableObj))
+        {
+            
+        }
+        
+    }
 
 }
